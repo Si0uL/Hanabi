@@ -23,6 +23,7 @@ var dealer = function () {
 }
 
 var players = ['Kant', 'Zensio', 'Louis', 'Antonin'];
+var indexNextToPlay = Math.trunc(Math.random()*players.length);
 
 var cardsPerPlayer = [null,null,5,5,4,4][players.length];
 
@@ -42,6 +43,8 @@ var gameData = {
     remainingCards: 55,
     discarded: [],
     discardedToDsiplay: [],
+    nextToPlay: players[indexNextToPlay],
+    cardsPerPlayer: cardsPerPlayer,
 };
 
 players.forEach(function(name) {
@@ -50,12 +53,13 @@ players.forEach(function(name) {
         gameData.hands[name].push(gameData.deck.pop());
     };
 });
-gameData.remainingCards = gameData.deck.length;
 
 //test to try discarded display
 for (var i = 0; i < 10; i++) {
     gameData.discarded.push(gameData.deck.pop());
 }
+
+gameData.remainingCards = gameData.deck.length;
 
 console.log(gameData.hands);
 console.log(gameData);
@@ -83,16 +87,65 @@ io.sockets.on('connection', function (socket, pseudo) {
         if (players.includes(pseudo)) {
 
             socket.emit('pseudo_ok');
+            socket.pseudo = pseudo;
 
             socket.on('login', function(pwd) {
                 pwd = ent.encode(pwd);
                 if (pwd == "test") {
-                    socket.pseudo = pseudo;
+
+                    //!!!!!!!!!!!!!!!!!!!
+                    //Etering The main
                     var to_send = JSON.parse(JSON.stringify(gameData));
                     delete to_send.hands[pseudo];
                     delete to_send.deck;
                     socket.emit('init', to_send);
                     console.log(pseudo,"logged in.");
+
+                    socket.on('playRequest', function(card_index) {
+                        // update gameData
+                        var card = gameData.hands[socket.pseudo].splice(card_index,1)[0];
+                        var drawnCard = gameData.deck.pop();
+                        gameData.remainingCards --;
+                        gameData.hands[socket.pseudo].push(drawnCard);
+                        console.log(socket.pseudo, "plays",card);
+                        // Correct case
+                        if (card.number == (gameData.found[card.color]+1)) {
+                            console.log("Correct");
+                            gameData.found[card.color] ++;
+                            socket.emit('played', card.color);
+                            socket.broadcast.emit('played', card.color);
+                        // Incorrect case
+                        } else {
+                            console.log("Incorrect");
+                            gameData.warnings ++;
+                            socket.emit('warning', {card: card, pseudo: socket.pseudo});
+                            socket.broadcast.emit('warning', {card: card, pseudo: socket.pseudo});
+                            gameData.discarded.push(card);
+                            socket.emit('dicard', card);
+                            socket.broadcast.emit('discard', card);
+                        }
+                        // Send drawn card
+                        socket.broadcast.emit('card_drawn', {pseudo: socket.pseudo, drawnCard: drawnCard, lastCardIndex: card_index});
+                        console.log("#################################");
+                        console.log(gameData.hands);
+                        console.log(gameData);
+                    });
+
+                    socket.on('discardRequest', function(card_index) {
+                        var card = gameData.hands[socket.pseudo].splice(card_index,1)[0];
+                        var drawnCard = gameData.deck.pop();
+                        gameData.remainingCards --;
+                        gameData.hands[socket.pseudo].push(drawnCard);
+                        console.log(socket.pseudo, "discards",card);
+                        gameData.discarded.push(card);
+                        socket.emit('dicard', card);
+                        socket.broadcast.emit('discard', card);
+                        socket.broadcast.emit('card_drawn', {pseudo: socket.pseudo, drawnCard: drawnCard, lastCardIndex: card_index});
+                        console.log("#################################");
+                        console.log(gameData.hands);
+                        console.log(gameData);
+                    });
+
                 } else {
                     console.log("Password Rejected");
                     socket.emit('reject_pwd');
