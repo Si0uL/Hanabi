@@ -28,7 +28,7 @@
         Your hand:
         <table>
             <tr>
-                <% for (var i = 1; i<6; i++) { %>
+                <% for (var i = 1; i<cardsPerPlayer+1; i++) { %>
                     <td class="card">
                         <img src="/img/tree.png" id="mycard<%= i %>" style="border:3px solid black; margin:0px 5px; padding:5px;">
                         <br>
@@ -78,7 +78,7 @@
 
                     function init_hand (new_hand, player_name) {
                         var table = '<tr><td>' + player_name + '\'s hand:</td></tr><tr id="' + player_name + '_hand">';
-                        for (var i = 0; i < 5; i++) {
+                        for (var i = 0; i < data.hands[player_name].length; i++) {
                             table += '<td><img src="/img/tree.png" id="' + player_name + (i+1) + '" style="border:3px solid black; margin:0px 5px; padding:5px;"></td>'
                         }
                         table += '</tr><tr><td><br></td></tr>';

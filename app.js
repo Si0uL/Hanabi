@@ -45,7 +45,7 @@ app.use(express.static('views'))
 
 /* On affiche la page de tosolist par défaut */
 .get('/game', function(req, res) {
-    res.render('game_screen.ejs');
+    res.render('game_screen.ejs', {cardsPerPlayer: cardsPerPlayer});
 })
 
 /* On redirige vers la todolist si la page demandée n'est pas trouvée */
