@@ -27,18 +27,18 @@ var players = ['Kant', 'Zensio', 'Louis', 'Antonin'];
 
 var cardsPerPlayer = [null,null,5,5,4,4][players.length];
 
-var data = {
+var gameData = {
     hands: {}
 };
 
 players.forEach(function(name) {
-    data.hands[name] = [];
+    gameData.hands[name] = [];
     for (var i = 0; i < cardsPerPlayer; i++) {
-        data.hands[name].push(deck.pop());
+        gameData.hands[name].push(deck.pop());
     };
 });
 
-console.log(data.hands);
+console.log(gameData.hands);
 
 /* On utilise les sessions */
 app.use(express.static('views'))
@@ -60,9 +60,28 @@ io.sockets.on('connection', function (socket, pseudo) {
 
     socket.on('nouveau_client', function (pseudo) {
         pseudo = ent.encode(pseudo);
-        socket.pseudo = pseudo;
-        socket.emit('init', data)
-        console.log(pseudo,"logged in.");
+        if (players.includes(pseudo)) {
+
+            socket.emit('pseudo_ok');
+
+            socket.on('login', function(pwd) {
+                pwd = ent.encode(pwd);
+                if (pwd == "test") {
+                    socket.pseudo = pseudo;
+                    var to_send = JSON.parse(JSON.stringify(gameData));
+                    delete to_send.hands[pseudo];
+                    socket.emit('init', to_send);
+                    console.log(pseudo,"logged in.");
+                } else {
+                    console.log("Password Rejected");
+                    socket.emit('reject_pwd');
+                }
+            })
+
+        } else {
+            console.log('Pseudo rejected');
+            socket.emit('reject_login');
+        }
     });
 
 });

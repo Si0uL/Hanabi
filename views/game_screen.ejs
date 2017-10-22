@@ -52,53 +52,73 @@
             // Connexion à socket.io
             var socket = io.connect('http://localhost:3333');
 
-            var pseudo = prompt('Quel est votre pseudo ?');
+            var pseudo = prompt('What is your name ?');
             socket.emit('nouveau_client', pseudo);
-            document.title = pseudo + ' - ' + document.title;
 
-            socket.on('init', function(data) {
+            socket.on('reject_login', function() {
+                pseudo = prompt('Impossible to find you, try again:\nWhat is your name ?');
+                socket.emit('nouveau_client', pseudo);
+            })
 
-                function init_hand (new_hand, player_name) {
-                    var table = '<tr><td>' + player_name + '\'s hand:</td></tr><tr id="' + player_name + '_hand">';
-                    for (var i = 0; i < 5; i++) {
-                        table += '<td><img src="/img/tree.png" id="' + player_name + (i+1) + '" style="border:3px solid black; margin:0px 5px; padding:5px;"></td>'
+            socket.on('pseudo_ok', function(data) {
+
+                var pwd = prompt('Password ?');
+                socket.emit('login', pwd);
+
+                socket.on('reject_pwd', function() {
+                    pwd = prompt('Wrong password, try again:');
+                    socket.emit('login', pwd);
+                });
+
+
+                //LOGIN CONFIRMED, MAIN STARTING
+                socket.on('init', function(data) {
+
+                    document.title = pseudo + ' - ' + document.title;
+
+                    function init_hand (new_hand, player_name) {
+                        var table = '<tr><td>' + player_name + '\'s hand:</td></tr><tr id="' + player_name + '_hand">';
+                        for (var i = 0; i < 5; i++) {
+                            table += '<td><img src="/img/tree.png" id="' + player_name + (i+1) + '" style="border:3px solid black; margin:0px 5px; padding:5px;"></td>'
+                        }
+                        table += '</tr><tr><td><br></td></tr>';
+                        $('#others').append(table);
                     }
-                    table += '</tr><tr><td><br></td></tr>';
-                    $('#others').append(table);
-                }
 
-                for (var name in data.hands) {
-                    init_hand(data.hands[name], name);
-                }
+                    for (var name in data.hands) {
+                        init_hand(data.hands[name], name);
+                    }
 
-            });
+                    var card_angles = [null, 0,0,0,0,0];
 
-            var card_angles = [null, 0,0,0,0,0];
+                    $('body').on('click', '.play', function() {
+                        console.log("Want to play n°", $(this).data('index'));
+                    });
 
-            $('body').on('click', '.play', function() {
-                console.log("Want to play n°", $(this).data('index'));
-            });
+                    $('body').on('click', '.discard', function() {
+                        console.log("Want to discard n°", $(this).data('index'));
+                    });
 
-            $('body').on('click', '.discard', function() {
-                console.log("Want to discard n°", $(this).data('index'));
-            });
+                    $('body').on('click', '.rotate-left', function() {
+                        var id = Number ($(this).data('index'));
+                        card_angles[id] = (card_angles[id] - 90)%360;
+                        console.log("Rotate-left n°", id," of ",card_angles[id]," degrees");
+                        document.getElementById('mycard'+id).style.transform="rotate(" + card_angles[id] + "deg)"; //default
+                        document.getElementById('mycard'+id).style["-webkit-transform"]="rotate(" + card_angles[id] + "deg)"; //Chrome, Safari, Opera
+                        document.getElementById('mycard'+id).style["-ms-transform"]="rotate(" + card_angles[id] + "deg)"; //IE
+                    });
 
-            $('body').on('click', '.rotate-left', function() {
-                var id = Number ($(this).data('index'));
-                card_angles[id] = (card_angles[id] - 90)%360;
-                console.log("Rotate-left n°", id," of ",card_angles[id]," degrees");
-                document.getElementById('mycard'+id).style.transform="rotate(" + card_angles[id] + "deg)"; //default
-                document.getElementById('mycard'+id).style["-webkit-transform"]="rotate(" + card_angles[id] + "deg)"; //Chrome, Safari, Opera
-                document.getElementById('mycard'+id).style["-ms-transform"]="rotate(" + card_angles[id] + "deg)"; //IE
-            });
+                    $('body').on('click', '.rotate-right', function() {
+                        var id = Number ($(this).data('index'));
+                        card_angles[id] = (card_angles[id] + 90)%360;
+                        console.log("Rotate-right n°", id," of ",card_angles[id]," degrees");
+                        document.getElementById('mycard'+id).style.transform="rotate(" + card_angles[id] + "deg)"; //default
+                        document.getElementById('mycard'+id).style["-webkit-transform"]="rotate(" + card_angles[id] + "deg)"; //Chrome, Safari, Opera
+                        document.getElementById('mycard'+id).style["-ms-transform"]="rotate(" + card_angles[id] + "deg)"; //IE
+                    });
 
-            $('body').on('click', '.rotate-right', function() {
-                var id = Number ($(this).data('index'));
-                card_angles[id] = (card_angles[id] + 90)%360;
-                console.log("Rotate-right n°", id," of ",card_angles[id]," degrees");
-                document.getElementById('mycard'+id).style.transform="rotate(" + card_angles[id] + "deg)"; //default
-                document.getElementById('mycard'+id).style["-webkit-transform"]="rotate(" + card_angles[id] + "deg)"; //Chrome, Safari, Opera
-                document.getElementById('mycard'+id).style["-ms-transform"]="rotate(" + card_angles[id] + "deg)"; //IE
+                });
+
             });
 
         </script>
