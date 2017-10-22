@@ -5,24 +5,40 @@ var app = express(),
     io = require('socket.io').listen(server),
     ent = require('ent');
 
-var data = {
-    hands: {
-        kant: [
-            {number:5, color: 'blue'},
-            {number:1, color: 'red'},
-            {number:3, color: 'multicolor'},
-            {number:2, color: 'blue'},
-            {number:2, color: 'green'},
-        ],
-        zensio: [
-            {number:4, color: 'white'},
-            {number:4, color: 'green'},
-            {number:1, color: 'blue'},
-            {number:1, color: 'blue'},
-            {number:4, color: 'yellow'},
-        ],
+var dealer = function () {
+    cards = [];
+    ['white', 'red', 'blue', 'yellow', 'green'].forEach(function(color){
+        [1,1,1,2,2,3,3,4,4,5].forEach(function(number){
+            cards.push({number: number, color: color});
+        });
+    });
+    for (var i = 1; i < 6; i++) {
+        cards.push({number: i, color: 'multicolor'});
+    };
+    var cards_dealt = [];
+    for (var i = 0; i < 55; i++) {
+        cards_dealt.push(cards.splice(Math.trunc(Math.random()*(55-i)), 1)[0]);
     }
+    return cards_dealt;
+}
+
+var deck = dealer();
+var players = ['Kant', 'Zensio', 'Louis', 'Antonin'];
+
+var cardsPerPlayer = [null,null,5,5,4,4][players.length];
+
+var data = {
+    hands: {}
 };
+
+players.forEach(function(name) {
+    data.hands[name] = [];
+    for (var i = 0; i < cardsPerPlayer; i++) {
+        data.hands[name].push(deck.pop());
+    };
+});
+
+console.log(data.hands);
 
 /* On utilise les sessions */
 app.use(express.static('views'))
