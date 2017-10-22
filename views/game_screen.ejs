@@ -62,14 +62,18 @@
                 var id = Number ($(this).data('index'));
                 card_angles[id] = (card_angles[id] - 90)%360;
                 console.log("Rotate-left n°", id," of ",card_angles[id]," degrees");
-                document.getElementById('mycard'+id).style.transform="rotate(" + card_angles[id] + "deg)";
+                document.getElementById('mycard'+id).style.transform="rotate(" + card_angles[id] + "deg)"; //default
+                document.getElementById('mycard'+id).style["-webkit-transform"]="rotate(" + card_angles[id] + "deg)"; //Chrome, Safari, Opera
+                document.getElementById('mycard'+id).style["-ms-transform"]="rotate(" + card_angles[id] + "deg)"; //IE
             });
 
             $('body').on('click', '.rotate-right', function() {
                 var id = Number ($(this).data('index'));
                 card_angles[id] = (card_angles[id] + 90)%360;
                 console.log("Rotate-right n°", id," of ",card_angles[id]," degrees");
-                document.getElementById('mycard'+id).style.transform="rotate(" + card_angles[id] + "deg)";
+                document.getElementById('mycard'+id).style.transform="rotate(" + card_angles[id] + "deg)"; //default
+                document.getElementById('mycard'+id).style["-webkit-transform"]="rotate(" + card_angles[id] + "deg)"; //Chrome, Safari, Opera
+                document.getElementById('mycard'+id).style["-ms-transform"]="rotate(" + card_angles[id] + "deg)"; //IE
             });
 
             /*
