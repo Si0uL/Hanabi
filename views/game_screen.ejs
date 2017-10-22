@@ -30,7 +30,7 @@
     </head>
 
     <body>
-        <h1 class="title">Online Hanabi</h1>
+        <h1 class="title" style="text-align:center; margin: 10px 0;">Online Hanabi</h1>
 
         <table>
             <tr>
@@ -116,6 +116,7 @@
 
                     <br>
 
+                    <!-- Discarded Cards -->
                     <span class="title">Discarded:</span>
                     <table style="border-bottom: 3px solid black">
                         <% for (var i=0; i<10; i++) { %>
@@ -124,9 +125,20 @@
                     </table>
 
                     <br>
+
+                    <!-- Last plays -->
                     <span class="title">Last Play:</span>
                     <br>
                     <span class="body" id="last-play"></span>
+
+                    <br>
+
+                    <!-- Information form -->
+                    <form>
+                      <input type="radio" name="gender" value="male" checked> Male<br>
+                      <input type="radio" name="gender" value="female"> Female<br>
+                      <input type="radio" name="gender" value="other"> Other
+                    </form>
 
                 </td>
             </tr>
