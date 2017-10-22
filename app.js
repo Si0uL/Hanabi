@@ -45,6 +45,7 @@ var gameData = {
     discardedToDsiplay: [],
     nextToPlay: players[indexNextToPlay],
     cardsPerPlayer: cardsPerPlayer,
+    lastPlay: "",
 };
 
 players.forEach(function(name) {
@@ -111,12 +112,18 @@ io.sockets.on('connection', function (socket, pseudo) {
                         // Correct case
                         if (card.number == (gameData.found[card.color]+1)) {
                             console.log("Correct");
+                            gameData.lastPlay = socket.pseudo + " plays " + card.color + " " + card.number;
+                            socket.emit('last_play', gameData.lastPlay);
+                            socket.broadcast.emit('last_play', gameData.lastPlay);
                             gameData.found[card.color] ++;
                             socket.emit('played', card.color);
                             socket.broadcast.emit('played', card.color);
                         // Incorrect case
                         } else {
                             console.log("Incorrect,", gameData.warnings+1, "warnings");
+                            gameData.lastPlay = socket.pseudo + " atemps to play " + card.color + " " + card.number;
+                            socket.emit('last_play', gameData.lastPlay);
+                            socket.broadcast.emit('last_play', gameData.lastPlay);
                             gameData.discarded.push(card);
                             socket.emit('discard', card);
                             socket.broadcast.emit('discard', card);
@@ -133,7 +140,10 @@ io.sockets.on('connection', function (socket, pseudo) {
                         var drawnCard = gameData.deck.pop();
                         gameData.remainingCards --;
                         gameData.hands[socket.pseudo].push(drawnCard);
-                        console.log(socket.pseudo, "discards",card);
+                        console.log(socket.pseudo, "discards", card);
+                        gameData.lastPlay = socket.pseudo + " discards " + card.color + " " + card.number;
+                        socket.emit('last_play', gameData.lastPlay);
+                        socket.broadcast.emit('last_play', gameData.lastPlay);
                         gameData.discarded.push(card);
                         socket.emit('discard', card);
                         socket.broadcast.emit('discard', card);
