@@ -22,21 +22,33 @@ var dealer = function () {
     return cards_dealt;
 }
 
-var deck = dealer();
 var players = ['Kant', 'Zensio', 'Louis', 'Antonin'];
 
 var cardsPerPlayer = [null,null,5,5,4,4][players.length];
 
 var gameData = {
-    hands: {}
+    hands: {},
+    deck: dealer(),
+    found: {
+        'white': 0,
+        'red': 0,
+        'yellow': 0,
+        'green': 0,
+        'blue': 0,
+        'multicolor': 0,
+    },
+    informations: 8,
+    warnings: 0,
+    remainingCards: 55,
 };
 
 players.forEach(function(name) {
     gameData.hands[name] = [];
     for (var i = 0; i < cardsPerPlayer; i++) {
-        gameData.hands[name].push(deck.pop());
+        gameData.hands[name].push(gameData.deck.pop());
     };
 });
+gameData.remainingCards = gameData.deck.length;
 
 console.log(gameData.hands);
 
@@ -70,6 +82,7 @@ io.sockets.on('connection', function (socket, pseudo) {
                     socket.pseudo = pseudo;
                     var to_send = JSON.parse(JSON.stringify(gameData));
                     delete to_send.hands[pseudo];
+                    delete to_send.deck;
                     socket.emit('init', to_send);
                     console.log(pseudo,"logged in.");
                 } else {
