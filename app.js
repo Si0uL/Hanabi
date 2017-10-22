@@ -5,8 +5,24 @@ var app = express(),
     io = require('socket.io').listen(server),
     ent = require('ent');
 
-var todolist = [];
-var index = 0;
+var data = {
+    hands: {
+        kant: [
+            {number:5, color: 'blue'},
+            {number:1, color: 'red'},
+            {number:3, color: 'multicolor'},
+            {number:2, color: 'blue'},
+            {number:2, color: 'green'},
+        ],
+        zensio: [
+            {number:4, color: 'white'},
+            {number:4, color: 'green'},
+            {number:1, color: 'blue'},
+            {number:1, color: 'blue'},
+            {number:4, color: 'yellow'},
+        ],
+    }
+};
 
 /* On utilise les sessions */
 app.use(express.static('views'))
@@ -29,7 +45,7 @@ io.sockets.on('connection', function (socket, pseudo) {
     socket.on('nouveau_client', function (pseudo) {
         pseudo = ent.encode(pseudo);
         socket.pseudo = pseudo;
-        socket.emit('init', {todolist: todolist, index: index})
+        socket.emit('init', data)
         console.log(pseudo,"logged in.");
     });
 

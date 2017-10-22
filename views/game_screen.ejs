@@ -22,6 +22,10 @@
     <body>
         <h1>Online Hanabi</h1>
 
+        <table id="others">
+        </table>
+
+        Your hand:
         <table>
             <tr>
                 <% for (var i = 1; i<6; i++) { %>
@@ -47,6 +51,27 @@
 
             // Connexion à socket.io
             var socket = io.connect('http://localhost:3333');
+
+            var pseudo = prompt('Quel est votre pseudo ?');
+            socket.emit('nouveau_client', pseudo);
+            document.title = pseudo + ' - ' + document.title;
+
+            socket.on('init', function(data) {
+
+                function init_hand (new_hand, player_name) {
+                    var table = '<tr><td>' + player_name + '\'s hand:</td></tr><tr id="' + player_name + '_hand">';
+                    for (var i = 0; i < 5; i++) {
+                        table += '<td><img src="/img/tree.png" id="' + player_name + (i+1) + '" style="border:3px solid black; margin:0px 5px; padding:5px;"></td>'
+                    }
+                    table += '</tr><tr><td><br></td></tr>';
+                    $('#others').append(table);
+                }
+
+                for (var name in data.hands) {
+                    init_hand(data.hands[name], name);
+                }
+
+            });
 
             var card_angles = [null, 0,0,0,0,0];
 
@@ -74,59 +99,6 @@
                 document.getElementById('mycard'+id).style.transform="rotate(" + card_angles[id] + "deg)"; //default
                 document.getElementById('mycard'+id).style["-webkit-transform"]="rotate(" + card_angles[id] + "deg)"; //Chrome, Safari, Opera
                 document.getElementById('mycard'+id).style["-ms-transform"]="rotate(" + card_angles[id] + "deg)"; //IE
-            });
-
-            /*
-            var pseudo = prompt('Quel est votre pseudo ?');
-            socket.emit('nouveau_client', pseudo);
-            document.title = pseudo + ' - ' + document.title;
-            */
-
-            socket.on('init', function (data) {
-
-                function add(todo, pseudo, id) {
-                    $('#list').append('<li id="todo' + id + '"><a class="delete" href="#" data-index="' + id + '">✘</a> ' + todo + ' (' + pseudo + ')' + '</li>');
-                }
-
-                function remove(id) {
-                    $('#todo'+id).remove();
-                }
-
-                //supérieur à toute les id pour éviter tout conflit
-                var next_index = data.index;
-
-                //on trace le tableau existant à l'initialisation
-                for (var i = 0; i < data.todolist.length; i++) {
-                    add(data.todolist[i].todo, data.todolist[i].pseudo, data.todolist[i].id)
-                }
-
-                //reception d'un ajout par un tiers
-                socket.on('add', function(data) {
-                    add(data.todo, data.pseudo, data.id);
-                    next_index ++;
-                });
-
-                //réception d'une suppression par un tiers
-                socket.on('remove', function (id) {
-                    remove(id);
-                });
-
-                //au clic sur le bouton ajouter
-                $('#add').submit(function () {
-                    var newtodo = $('#newtodo').val();
-                    socket.emit('add', {todo: newtodo, id: next_index});
-                    add(newtodo, 'me', next_index);
-                    next_index ++;
-                    $('#newtodo').val('').focus();
-                    return false;
-                });
-
-                //au clic sur une croix
-                $('body').on('click', '.delete', function() {
-                    remove($(this).data('index'));
-                    socket.emit('remove', $(this).data('index'));
-                })
-
             });
 
         </script>
