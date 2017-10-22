@@ -72,6 +72,7 @@
 
                     <br>
 
+                    <!-- Informations + Warnings container -->
                     <table>
                         <tr>
                             <td>Informations:&nbsp;</td>
@@ -101,6 +102,15 @@
                                 </table>
                             </td>
                         </tr>
+                    </table>
+
+                    <br>
+
+                    Discarded:
+                    <table>
+                        <% for (var i=0; i<10; i++) { %>
+                        <tr id="discarded_row<%= i %>"></tr>
+                        <% }; %>
                     </table>
 
                 </td>
@@ -148,9 +158,20 @@
                         $('#others').append(table);
                     }
 
+                    function add_discarded (card, index) {
+                        var col= '<td><img src="/img/cards/' + card.color + card.number + '.png" id="discarded' + index + '" style="border:1px solid black; height:64px;"></td>'
+                        $('#discarded_row' + Math.trunc(index/6)).append(col);
+                    }
+
                     for (var name in data.hands) {
                         init_hand(data.hands[name], name);
                     }
+
+                    var discarded_number = 0;
+                    data.discarded.forEach(function(card) {
+                        add_discarded(card, discarded_number);
+                        discarded_number ++;
+                    });
 
                     var card_angles = [null, 0,0,0,0,0];
 

@@ -40,6 +40,8 @@ var gameData = {
     informations: 8,
     warnings: 0,
     remainingCards: 55,
+    discarded: [],
+    discardedToDsiplay: [],
 };
 
 players.forEach(function(name) {
@@ -50,7 +52,13 @@ players.forEach(function(name) {
 });
 gameData.remainingCards = gameData.deck.length;
 
+//test to try discarded display
+for (var i = 0; i < 10; i++) {
+    gameData.discarded.push(gameData.deck.pop());
+}
+
 console.log(gameData.hands);
+console.log(gameData);
 
 /* On utilise les sessions */
 app.use(express.static('views'))
