@@ -4,7 +4,17 @@
     <head>
         <meta charset="utf-8">
         <title>Online Hanabi</title>
+        <link href="https://fonts.googleapis.com/css?family=Carter+One" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Jaldi" rel="stylesheet">
         <style>
+
+            .title {
+                font-family: 'Carter One', cursive;
+            }
+
+            .body {
+                font-family: 'Jaldi', sans-serif;
+            }
 
             .card-buttons{
                 visibility: hidden;
@@ -20,7 +30,7 @@
     </head>
 
     <body>
-        <h1>Online Hanabi</h1>
+        <h1 class="title">Online Hanabi</h1>
 
         <table>
             <tr>
@@ -31,7 +41,7 @@
                     <table id="others">
                     </table>
 
-                    Your hand:
+                    <span class="title">Your hand:</span>
                     <table>
                         <tr>
                             <% for (var i = 0; i<cardsPerPlayer; i++) { %>
@@ -63,7 +73,7 @@
                         <tr>
                             <% for (var col = 0; col<3; col++) { %>
                                 <td>
-                                    <img src="/img/cross.svg" id="played_<%= colors[3*row+col] %>" style="height:128px; border:3px solid black; margin:0px 5px; padding:5px;">
+                                    <img src="/img/cross.svg" id="played_<%= colors[3*row+col] %>" style="height:128px; border:3px solid black; margin:5px; padding:5px;">
                                 </td>
                             <% }; %>
                         </tr>
@@ -75,7 +85,7 @@
                     <!-- Informations + Warnings container -->
                     <table>
                         <tr>
-                            <td>Informations:&nbsp;</td>
+                            <td class="title">Informations:&nbsp;</td>
                             <td>
                                 <table>
                                     <% for (var row=0; row<2; row++) { %>
@@ -89,7 +99,7 @@
                                     <% }; %>
                                 </table>
                             </td>
-                            <td style="padding-left:48px;">Warnings:&nbsp;</td>
+                            <td class="title" style="padding-left:48px;">Warnings:&nbsp;</td>
                             <td>
                                 <table>
                                     <tr>
@@ -106,17 +116,17 @@
 
                     <br>
 
-                    Discarded:
-                    <table>
+                    <span class="title">Discarded:</span>
+                    <table style="border-bottom: 3px solid black">
                         <% for (var i=0; i<10; i++) { %>
                         <tr id="discarded_row<%= i %>"></tr>
                         <% }; %>
                     </table>
 
                     <br>
-                    Last Play:
+                    <span class="title">Last Play:</span>
                     <br>
-                    <span id="last-play"></span>
+                    <span class="body" id="last-play"></span>
 
                 </td>
             </tr>
@@ -156,7 +166,7 @@
                     document.title = pseudo + ' - ' + document.title;
 
                     function init_hand (new_hand, player_name) {
-                        var table = '<tr><td>' + player_name + ':</td></tr><tr id="' + player_name + '_hand">';
+                        var table = '<tr><td class="title">' + player_name + ':</td></tr><tr id="' + player_name + '_hand">';
                         for (var i = new_hand.length-1; i > -1; i--) {
                             table += '<td><img src="/img/cards/' + new_hand[i].color + new_hand[i].number + '.png" id="' + player_name + i + '" style="border:3px solid black; margin:0px 5px; padding:5px;"></td>'
                         }
