@@ -22,26 +22,88 @@
     <body>
         <h1>Online Hanabi</h1>
 
-        <table id="others">
-        </table>
-
-        Your hand:
         <table>
             <tr>
-                <% for (var i = 1; i<cardsPerPlayer+1; i++) { %>
-                    <td class="card">
-                        <img src="/img/tree.png" id="mycard<%= i %>" style="border:3px solid black; margin:0px 5px; padding:5px;">
-                        <br>
-                        <table class="card-buttons">
-                            <tr>
-                                <td style="text-align:center;"><a data-index="<%= i %>" class="play" href="#"><img src="/img/play.svg" style="height:20px;"></a></td>
-                                <td style="text-align:center;"><a data-index="<%= i %>" class="discard" href="#"><img src="/img/discard.svg" style="height:20px;"></a></td>
-                                <td style="text-align:center;"><a data-index="<%= i %>" class="rotate-left" href="#"><img src="/img/rotate-left.svg" style="height:20px;"></a></td>
-                                <td style="text-align:center;"><a data-index="<%= i %>" class="rotate-right" href="#"><img src="/img/rotate-right.svg" style="height:20px;"></a></td>
-                            </tr>
-                        </table>
-                    </td>
-                <% }; %>
+                <!-- Left Panel -->
+                <td style="padding-right:30px;">
+
+                    <!-- Others' Hand -->
+                    <table id="others">
+                    </table>
+
+                    Your hand:
+                    <table>
+                        <tr>
+                            <% for (var i = 1; i<cardsPerPlayer+1; i++) { %>
+                                <td class="card">
+                                    <img src="/img/tree.png" id="mycard<%= i %>" style="border:3px solid black; margin:0px 5px; padding:5px;">
+                                    <br>
+                                    <table class="card-buttons">
+                                        <tr>
+                                            <td style="text-align:center;"><a data-index="<%= i %>" class="play" href="#"><img src="/img/play.svg" style="height:20px;"></a></td>
+                                            <td style="text-align:center;"><a data-index="<%= i %>" class="discard" href="#"><img src="/img/discard.svg" style="height:20px;"></a></td>
+                                            <td style="text-align:center;"><a data-index="<%= i %>" class="rotate-left" href="#"><img src="/img/rotate-left.svg" style="height:20px;"></a></td>
+                                            <td style="text-align:center;"><a data-index="<%= i %>" class="rotate-right" href="#"><img src="/img/rotate-right.svg" style="height:20px;"></a></td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            <% }; %>
+                        </tr>
+                    </table>
+
+                </td>
+
+                <!-- Right Panel -->
+                <td style="padding-left:30px; border-left: 3px solid black;">
+
+                    <!-- Played Cards -->
+                    <table>
+                        <% var colors = ['white', 'red', 'blue', 'green', 'multicolor', 'yellow'] %>
+                        <% for (var row=0; row<2; row++) { %>
+                        <tr>
+                            <% for (var col = 0; col<3; col++) { %>
+                                <td>
+                                    <img src="/img/tree.png" id="played_<%= colors[3*row+col] %>" style="border:3px solid black; margin:0px 5px; padding:5px;">
+                                </td>
+                            <% }; %>
+                        </tr>
+                        <% }; %>
+                    </table>
+
+                    <br>
+
+                    <table>
+                        <tr>
+                            <td>Informations:&nbsp;</td>
+                            <td>
+                                <table>
+                                    <% for (var row=0; row<2; row++) { %>
+                                    <tr>
+                                        <% for (var col = 0; col<4; col++) { %>
+                                            <td>
+                                                <img src="/img/info.svg" id="info<%= 4*row+col+1 %>" style="height:20px;">
+                                            </td>
+                                        <% }; %>
+                                    </tr>
+                                    <% }; %>
+                                </table>
+                            </td>
+                            <td style="padding-left:48px;">Warnings:&nbsp;</td>
+                            <td>
+                                <table>
+                                    <tr>
+                                        <% for (var col = 0; col<3; col++) { %>
+                                            <td style="border: 3px solid black;">
+                                                <img src="/img/warning.svg" id="warning<%= col+1 %>" style="height:20px; padding: 3px 3px 0 3px; visibility: hidden;">
+                                            </td>
+                                        <% }; %>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+
+                </td>
             </tr>
         </table>
 
