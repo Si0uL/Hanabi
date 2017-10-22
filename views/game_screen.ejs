@@ -58,7 +58,7 @@
 
                     <!-- Played Cards -->
                     <table>
-                        <% var colors = ['white', 'red', 'blue', 'green', 'multicolor', 'yellow'] %>
+                        <% var colors = ['black', 'red', 'blue', 'green', 'multicolor', 'yellow'] %>
                         <% for (var row=0; row<2; row++) { %>
                         <tr>
                             <% for (var col = 0; col<3; col++) { %>
@@ -141,8 +141,8 @@
 
                     function init_hand (new_hand, player_name) {
                         var table = '<tr><td>' + player_name + '\'s hand:</td></tr><tr id="' + player_name + '_hand">';
-                        for (var i = 0; i < data.hands[player_name].length; i++) {
-                            table += '<td><img src="/img/tree.png" id="' + player_name + (i+1) + '" style="border:3px solid black; margin:0px 5px; padding:5px;"></td>'
+                        for (var i = 0; i < new_hand.length; i++) {
+                            table += '<td><img src="/img/cards/' + new_hand[i].color + new_hand[i].number + '.png" id="' + player_name + (i+1) + '" style="border:3px solid black; margin:0px 5px; padding:5px;"></td>'
                         }
                         table += '</tr><tr><td><br></td></tr>';
                         $('#others').append(table);

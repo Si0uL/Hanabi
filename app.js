@@ -7,7 +7,7 @@ var app = express(),
 
 var dealer = function () {
     cards = [];
-    ['white', 'red', 'blue', 'yellow', 'green'].forEach(function(color){
+    ['black', 'red', 'blue', 'yellow', 'green'].forEach(function(color){
         [1,1,1,2,2,3,3,4,4,5].forEach(function(number){
             cards.push({number: number, color: color});
         });
@@ -30,7 +30,7 @@ var gameData = {
     hands: {},
     deck: dealer(),
     found: {
-        'white': 0,
+        'black': 0,
         'red': 0,
         'yellow': 0,
         'green': 0,
