@@ -116,19 +116,16 @@ io.sockets.on('connection', function (socket, pseudo) {
                             socket.broadcast.emit('played', card.color);
                         // Incorrect case
                         } else {
-                            console.log("Incorrect");
+                            console.log("Incorrect,", gameData.warnings+1, "warnings");
+                            gameData.discarded.push(card);
+                            socket.emit('discard', card);
+                            socket.broadcast.emit('discard', card);
                             gameData.warnings ++;
                             socket.emit('warning', {card: card, pseudo: socket.pseudo});
                             socket.broadcast.emit('warning', {card: card, pseudo: socket.pseudo});
-                            gameData.discarded.push(card);
-                            socket.emit('dicard', card);
-                            socket.broadcast.emit('discard', card);
                         }
                         // Send drawn card
                         socket.broadcast.emit('card_drawn', {pseudo: socket.pseudo, drawnCard: drawnCard, lastCardIndex: card_index});
-                        console.log("#################################");
-                        console.log(gameData.hands);
-                        console.log(gameData);
                     });
 
                     socket.on('discardRequest', function(card_index) {
@@ -138,12 +135,9 @@ io.sockets.on('connection', function (socket, pseudo) {
                         gameData.hands[socket.pseudo].push(drawnCard);
                         console.log(socket.pseudo, "discards",card);
                         gameData.discarded.push(card);
-                        socket.emit('dicard', card);
+                        socket.emit('discard', card);
                         socket.broadcast.emit('discard', card);
                         socket.broadcast.emit('card_drawn', {pseudo: socket.pseudo, drawnCard: drawnCard, lastCardIndex: card_index});
-                        console.log("#################################");
-                        console.log(gameData.hands);
-                        console.log(gameData);
                     });
 
                 } else {

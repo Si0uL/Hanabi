@@ -134,7 +134,9 @@
 
             socket.on('pseudo_ok', function() {
 
-                var pwd = prompt('Password ?');
+                //  hacked authentication for dev
+                //  var pwd = prompt('Password ?');
+                var pwd = "test";
                 socket.emit('login', pwd);
 
                 socket.on('reject_pwd', function() {
@@ -145,8 +147,6 @@
 
                 //LOGIN CONFIRMED, MAIN STARTING
                 socket.on('init', function(gameData) {
-
-                    console.log(gameData);
 
                     document.title = pseudo + ' - ' + document.title;
 
@@ -175,27 +175,22 @@
                     });
 
                     socket.on('discard', function(card) {
-                        console.log("Dicard ");
                         add_discarded(card, discarded_number);
                         discarded_number ++;
                     });
 
                     socket.on('played', function(color) {
-                        console.log("Played");
                         gameData.found[color] ++;
                         document.getElementById('played_' + color).src = "/img/cards/" + color + gameData.found[color] + ".png";
                     });
 
                     socket.on('warning', function(data) {
-                        console.log(data);
                         document.getElementById('warning'+gameData.warnings).style["visibility"]="visible";
                         gameData.warnings ++;
                         alert('Warning: ' + data.pseudo + ' attempted to play the ' + data.card.color + ' ' + data.card.number);
                     })
 
                     socket.on('card_drawn', function(data) {
-                        console.log("Card Drawn", data);
-                        console.log(gameData.cardsPerPlayer);
                         for (var i = data.lastCardIndex; i < gameData.cardsPerPlayer-1; i++) {
                             document.getElementById(data.pseudo + i).src = document.getElementById(data.pseudo + (i+1)).src;
                         }
@@ -205,12 +200,10 @@
                     var card_angles = [0,0,0,0,0];
 
                     $('body').on('click', '.play', function() {
-                        console.log("Want to play n°", $(this).data('index'));
                         socket.emit('playRequest', $(this).data('index'));
                     });
 
                     $('body').on('click', '.discard', function() {
-                        console.log("Want to discard n°", $(this).data('index'));
                         socket.emit('discardRequest', $(this).data('index'));
                     });
 
