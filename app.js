@@ -22,6 +22,49 @@ var dealer = function () {
     return cards_dealt;
 }
 
+var is_info_correct = function (info, hand) {
+    var to_return = false;
+    if (info.length == 1) {
+        info = Number(info);
+    }
+    hand.forEach(function(elt) {
+        if (elt.number == info || elt.color == info) {
+            to_return = true
+        }
+    });
+    return to_return;
+}
+
+var eval_info = function (info, hand) {
+    var number = false;
+    if (info.length == 1) {
+        info = Number(info);
+        number = true;
+    }
+    var pos = [];
+    hand.forEach(function(elt, n) {
+        if (elt.number == info || elt.color == info) {
+            pos.push(n+1);
+        }
+    });
+    var sentence = "You have " + pos.length;
+    if (number) {
+        sentence += " number " + info;
+    } else {
+        sentence += " " + info;
+    }
+    if (pos.length > 1) {
+        sentence += " cards in position ";
+        for (var i = 0; i < pos.length-1; i++) {
+            sentence += pos[i] + ", ";
+        }
+        sentence += "and " + pos[pos.length-1] + ".";
+    } else {
+        sentence += " card in position " + pos[0] + ".";
+    }
+    return sentence;
+}
+
 var players = ['Kant', 'Zensio', 'Louis', 'Antonin'];
 var indexNextToPlay = Math.trunc(Math.random()*players.length);
 
@@ -148,6 +191,18 @@ io.sockets.on('connection', function (socket, pseudo) {
                         socket.emit('discard', card);
                         socket.broadcast.emit('discard', card);
                         socket.broadcast.emit('card_drawn', {pseudo: socket.pseudo, drawnCard: drawnCard, lastCardIndex: card_index});
+                    });
+
+                    socket.on('infoRequest', function(data) {
+                        if (is_info_correct(data.info, gameData.hands[data.player])) {
+                            var sentence = eval_info(data.info, gameData.hands[data.player]);
+                            gameData.lastPlay = socket.pseudo + " says " + data.player + ": " + sentence;
+                            console.log(gameData.lastPlay);
+                            socket.emit('last_play', gameData.lastPlay);
+                            socket.broadcast.emit('last_play', gameData.lastPlay);
+                        } else {
+                            socket.emit('wrong_info', data.player + " has no " + data.info + " in his hand !");
+                        }
                     });
 
                 } else {

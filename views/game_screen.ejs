@@ -50,10 +50,10 @@
                                     <br>
                                     <table class="card-buttons">
                                         <tr>
-                                            <td style="text-align:center;"><a data-index="<%= i %>" class="play" href="#"><img src="/img/play.svg" style="height:20px;"></a></td>
-                                            <td style="text-align:center;"><a data-index="<%= i %>" class="discard" href="#"><img src="/img/discard.svg" style="height:20px;"></a></td>
-                                            <td style="text-align:center;"><a data-index="<%= i %>" class="rotate-left" href="#"><img src="/img/rotate-left.svg" style="height:20px;"></a></td>
-                                            <td style="text-align:center;"><a data-index="<%= i %>" class="rotate-right" href="#"><img src="/img/rotate-right.svg" style="height:20px;"></a></td>
+                                            <td style="text-align:center;"><a data-index="<%= i %>" class="play" href="javascript:void(0);"><img src="/img/play.svg" style="height:20px;"></a></td>
+                                            <td style="text-align:center;"><a data-index="<%= i %>" class="discard" href="javascript:void(0);"><img src="/img/discard.svg" style="height:20px;"></a></td>
+                                            <td style="text-align:center;"><a data-index="<%= i %>" class="rotate-left" href="javascript:void(0);"><img src="/img/rotate-left.svg" style="height:20px;"></a></td>
+                                            <td style="text-align:center;"><a data-index="<%= i %>" class="rotate-right" href="javascript:void(0);"><img src="/img/rotate-right.svg" style="height:20px;"></a></td>
                                         </tr>
                                     </table>
                                 </td>
@@ -64,7 +64,7 @@
                 </td>
 
                 <!-- Right Panel -->
-                <td style="padding-left:30px; border-left: 3px solid black;">
+                <td style="padding-left:30px; border-left: 3px solid black; width:526px;">
 
                     <!-- Played Cards -->
                     <table>
@@ -132,13 +132,67 @@
                     <span class="body" id="last-play"></span>
 
                     <br>
+                    <br>
 
                     <!-- Information form -->
-                    <form>
-                      <input type="radio" name="gender" value="male" checked> Male<br>
-                      <input type="radio" name="gender" value="female"> Female<br>
-                      <input type="radio" name="gender" value="other"> Other
-                    </form>
+                    <span class="title">Send an information:</span>
+                    <table>
+                        <tr>
+                            <td>
+                                <!-- Player selection -->
+                                <form id="player-form">
+                                </form>
+                            </td>
+                            <td>
+                                <!-- Information type selection -->
+                                <form id="info-form">
+                                    <table>
+                                        <tr>
+                                            <td>
+                                                <!-- Color selection -->
+                                                <table style="border-left: 1px solid black;">
+                                                    <% var fields = ['black', 'green', 'red', 'blue', 'multicolor', 'yellow']; %>
+                                                    <% for (var row=0; row<3; row++) { %>
+                                                        <tr>
+                                                            <% for (var col=0; col<2; col++) { %>
+                                                                <td>
+                                                                    <input type="radio" name="info" value="<%= fields[3*col+row] %>"><span class="body"> <%= fields[3*col+row] %></span><br>
+                                                                </td>
+                                                            <% }; %>
+                                                        </tr>
+                                                    <% }; %>
+                                                </table>
+                                            </td>
+                                            <td>
+                                                <!-- Number selection -->
+                                                <table style="border-left: 1px solid black; border-right: 1px solid black; padding-right:5px;">
+                                                    <% var fields = [1,2,3,4,5]; %>
+                                                    <% for (var row=0; row<3; row++) { %>
+                                                        <tr>
+                                                            <% for (var col=0; col<2; col++) { %>
+                                                                <td>
+                                                                    <% if (fields[3*col+row]) { %>
+                                                                        <input type="radio" name="info" value="<%= fields[3*col+row] %>"><span class="body"> <%= fields[3*col+row] %></span><br>
+                                                                    <% }; %>
+                                                                </td>
+                                                            <% }; %>
+                                                        </tr>
+                                                    <% }; %>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </form>
+                            </td>
+                            <!-- Button -->
+                            <td>
+                                <td class="information_sender" href="javascript:void(0);"><img src="/img/play.svg" style="height:20px;"></a></td>
+                                <!--
+                                <button id="information_sender">Send</button>
+                                -->
+                            </td>
+                        </tr>
+                    </table>
 
                 </td>
             </tr>
@@ -193,6 +247,7 @@
 
                     for (var name in gameData.hands) {
                         init_hand(gameData.hands[name], name);
+                        $('#player-form').append('<input type="radio" name="player" value="' + name + '"><span class="body"> ' + name + '</span><br>')
                     }
 
                     var discarded_number = 0;
@@ -228,6 +283,10 @@
                         document.getElementById('last-play').innerHTML = message;
                     });
 
+                    socket.on('wrong_info', function(message) {
+                        alert(message);
+                    });
+
                     var card_angles = [0,0,0,0,0];
 
                     $('body').on('click', '.play', function() {
@@ -236,6 +295,27 @@
 
                     $('body').on('click', '.discard', function() {
                         socket.emit('discardRequest', $(this).data('index'));
+                    });
+
+                    // Information sender
+                    $('body').on('click', '.information_sender', function() {
+                        var p = document.getElementById("player-form");
+                        var player = undefined;
+                        for (var i = 0; i < p.length ;i++) {
+                            if (p.elements[i].checked) {
+                                player = p.elements[i].value;
+                            }
+                        }
+                        var x = document.getElementById("info-form");
+                        var info = undefined;
+                        for (var i = 0; i < x.length ;i++) {
+                            if (x.elements[i].checked) {
+                                info = x.elements[i].value;
+                            }
+                        }
+                        if (player && info) {
+                            socket.emit('infoRequest', {player: player, info: info});
+                        }
                     });
 
                     $('body').on('click', '.rotate-left', function() {
