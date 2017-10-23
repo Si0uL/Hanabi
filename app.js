@@ -255,10 +255,10 @@ io.sockets.on('connection', function (socket) {
                                 socket.emit('info', 'remove');
                                 socket.broadcast.emit('info', 'remove');
                             } else {
-                                socket.emit('wrong_info', data.player + " has no " + data.info + " in his hand !");
+                                socket.emit('notify', data.player + " has no " + data.info + " in his hand !");
                             }
                         } else {
-                            socket.emit('no_info');
+                            socket.emit('notify', 'No information available!');
                         }
                     });
 
@@ -287,10 +287,10 @@ io.sockets.on('connection', function (socket) {
                                 to_send.push(-elt.angle);
                             });
                             socket.emit('redraw_mine', to_send);
-                            socket.emit('valid_reorder');
+                            socket.emit('notify', 'Reordered, changes applied.');
                             socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
                         } else {
-                            socket.emit('invalid_reorder');
+                            socket.emit('notify', 'Invalid order given, no change applied.');
                         }
                     });
 

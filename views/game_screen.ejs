@@ -340,20 +340,8 @@
                         }
                     });
 
-                    socket.on('wrong_info', function(message) {
+                    socket.on('notify', function(mesage) {
                         alert(message);
-                    });
-
-                    socket.on('no_info', function() {
-                        alert('No information available!');
-                    });
-
-                    socket.on('valid_reorder', function() {
-                        alert('Reordered, changes applied.');
-                    });
-
-                    socket.on('invalid_reorder', function() {
-                        alert('Invalid order given, no change applied.');
                     });
 
                     socket.on('game_end', function(message) {
@@ -362,6 +350,7 @@
                     });
 
 
+                    // Buttons and links listeners
                     $('body').on('click', '.play', function() {
                         socket.emit('playRequest', $(this).data('index'));
                     });
