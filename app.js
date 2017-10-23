@@ -119,6 +119,7 @@ var gameData = {
     informations: 8,
     warnings: 0,
     remainingCards: 55,
+    remainingTurns: -1,
     discarded: [],
     discardedToDsiplay: [],
     nextToPlay: players[indexNextToPlay],
@@ -180,6 +181,23 @@ io.sockets.on('connection', function (socket) {
                     socket.emit('init', to_send);
                     console.log(socket.pseudo,"logged in.");
 
+                    var next_turn = function() {
+                        gameData.indexNextToPlay = (gameData.indexNextToPlay + 1)%gameData.players.length;
+                        gameData.nextToPlay = gameData.players[gameData.indexNextToPlay];
+                        socket.emit('next_turn', gameData.nextToPlay);
+                        socket.broadcast.emit('next_turn', gameData.nextToPlay);
+                        if (gameData.remainingTurns > 0) {
+                            gameData.remainingTurns --;
+                        } else if (gameData.remainingTurns == 0) {
+                            var score = 0;
+                            gameData.found.forEach(function(elt) {
+                                score += elt;
+                            });
+                            socket.emit('game_end', "Game finished: You scored " + score);
+                            socket.broadcast.emit('game_end', "Game finished: You scored " + score);
+                        }
+                    }
+
                     socket.on('playRequest', function(card_index) {
                         if (socket.pseudo != gameData.nextToPlay) {
                             socket.emit('notify', 'It\'s not your turn');
@@ -230,11 +248,13 @@ io.sockets.on('connection', function (socket) {
                             // Send drawn card
                             socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
                             socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
-                            // next turn
-                            gameData.indexNextToPlay = (gameData.indexNextToPlay + 1)%gameData.players.length;
-                            gameData.nextToPlay = gameData.players[gameData.indexNextToPlay];
-                            socket.emit('next_turn', gameData.nextToPlay);
-                            socket.broadcast.emit('next_turn', gameData.nextToPlay);
+                            // if last card drawn
+                            if (gameData.remainingCards == 0) {
+                                gameData.remainingTurns = gameData.players.length;
+                                socket.emit('notify', socket.pseudo + ' drew the last card, everybody has now one turn left.');
+                                socket.broadcast.emit('notify', socket.pseudo + ' drew the last card, everybody has now one turn left.');
+                            }
+                            next_turn();
                         }
                     });
 
@@ -260,11 +280,13 @@ io.sockets.on('connection', function (socket) {
                                 socket.emit('info', 'add');
                                 socket.broadcast.emit('info', 'add');
                             }
-                            // next turn
-                            gameData.indexNextToPlay = (gameData.indexNextToPlay + 1)%gameData.players.length;
-                            gameData.nextToPlay = gameData.players[gameData.indexNextToPlay];
-                            socket.emit('next_turn', gameData.nextToPlay);
-                            socket.broadcast.emit('next_turn', gameData.nextToPlay);
+                            // if last card drawn
+                            if (gameData.remainingCards == 0) {
+                                gameData.remainingTurns = gameData.players.length;
+                                socket.emit('notify', socket.pseudo + ' drew the last card, everybody has now one turn left.');
+                                socket.broadcast.emit('notify', socket.pseudo + ' drew the last card, everybody has now one turn left.');
+                            }
+                            next_turn()
                         }
                     });
 
@@ -282,11 +304,7 @@ io.sockets.on('connection', function (socket) {
                                     gameData.informations --;
                                     socket.emit('info', 'remove');
                                     socket.broadcast.emit('info', 'remove');
-                                    // next turn
-                                    gameData.indexNextToPlay = (gameData.indexNextToPlay + 1)%gameData.players.length;
-                                    gameData.nextToPlay = gameData.players[gameData.indexNextToPlay];
-                                    socket.emit('next_turn', gameData.nextToPlay);
-                                    socket.broadcast.emit('next_turn', gameData.nextToPlay);
+                                    next_turn();
                                 } else {
                                     socket.emit('notify', data.player + " has no " + data.info + " in his hand !");
                                 }
