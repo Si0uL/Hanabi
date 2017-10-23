@@ -14,6 +14,7 @@
 
             .body {
                 font-family: 'Jaldi', sans-serif;
+                font-size: large;
             }
 
             .card-buttons{
@@ -126,13 +127,28 @@
 
                     <br>
 
-                    <!-- Last plays -->
-                    <span class="title">Last Play:</span>
-                    <br>
-                    <span class="body" id="last-play"></span>
-
-                    <br>
-                    <br>
+                    <table>
+                        <tr>
+                            <td style="width:70%">
+                                <!-- Last plays -->
+                                <span class="title">Last Play:</span>
+                            </td>
+                            <td style="text-align:center">
+                                <!-- Remaining Cards -->
+                                <span class="title">Remaining Cards:</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:70%">
+                                <!-- Last plays -->
+                                <span class="body" id="last-play"></span>
+                            </td>
+                            <td style="text-align:center">
+                                <!-- Remaining Cards -->
+                                <span class="body" id="remaining-cards"></span>
+                            </td>
+                        </tr>
+                    </table>
 
                     <!-- Information form -->
                     <span class="title">Send an information:</span>
@@ -231,6 +247,8 @@
 
                     document.title = pseudo + ' - ' + document.title;
 
+                    document.getElementById('remaining-cards').innerHTML = gameData.remainingCards;
+
                     function init_hand (new_hand, player_name) {
                         var table = '<tr><td class="title">' + player_name + ':</td></tr><tr id="' + player_name + '_hand">';
                         for (var i = new_hand.length-1; i > -1; i--) {
@@ -295,6 +313,11 @@
                             document.getElementById(data.pseudo + i).src = document.getElementById(data.pseudo + (i+1)).src;
                         }
                         document.getElementById(data.pseudo + (gameData.cardsPerPlayer-1)).src = "/img/cards/" + data.drawnCard.color + data.drawnCard.number + ".png";
+                        document.getElementById('remaining-cards').innerHTML --;
+                    });
+
+                    socket.on('you_drew', function() {
+                        document.getElementById('remaining-cards').innerHTML --;
                     });
 
                     socket.on('last_play', function(message) {

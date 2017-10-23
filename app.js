@@ -182,6 +182,7 @@ io.sockets.on('connection', function (socket, pseudo) {
                             socket.broadcast.emit('warning', {card: card, pseudo: socket.pseudo});
                         }
                         // Send drawn card
+                        socket.emit('you_drew');
                         socket.broadcast.emit('card_drawn', {pseudo: socket.pseudo, drawnCard: drawnCard, lastCardIndex: card_index});
                     });
 
@@ -197,6 +198,7 @@ io.sockets.on('connection', function (socket, pseudo) {
                         gameData.discarded.push(card);
                         socket.emit('discard', card);
                         socket.broadcast.emit('discard', card);
+                        socket.emit('you_drew');
                         socket.broadcast.emit('card_drawn', {pseudo: socket.pseudo, drawnCard: drawnCard, lastCardIndex: card_index});
                         if (gameData.informations != 8) {
                             gameData.informations ++;
