@@ -301,14 +301,18 @@
                     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     // Beginning of EventListeners
 
-                    socket.on('discard', function(card) {
+                    socket.on('discarded', function(card) {
                         add_discarded(card, discarded_number);
                         discarded_number ++;
+                        gameData.remainingCards --;
+                        document.getElementById('remaining-cards').innerHTML = gameData.remainingCards;
                     });
 
                     socket.on('played', function(color) {
                         gameData.found[color] ++;
                         document.getElementById('played_' + color).src = "/img/cards/" + color + gameData.found[color] + ".png";
+                        gameData.remainingCards --;
+                        document.getElementById('remaining-cards').innerHTML = gameData.remainingCards;
                     });
 
                     socket.on('info', function(str) {

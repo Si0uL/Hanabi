@@ -212,8 +212,8 @@ io.sockets.on('connection', function (socket) {
                             socket.emit('last_play', gameData.lastPlay);
                             socket.broadcast.emit('last_play', gameData.lastPlay);
                             gameData.discarded.push(card);
-                            socket.emit('discard', card);
-                            socket.broadcast.emit('discard', card);
+                            socket.emit('discarded', card);
+                            socket.broadcast.emit('discarded', card);
                             gameData.warnings ++;
                             socket.emit('warning', {card: card, pseudo: socket.pseudo});
                             socket.broadcast.emit('warning', {card: card, pseudo: socket.pseudo});
@@ -237,8 +237,8 @@ io.sockets.on('connection', function (socket) {
                         socket.emit('last_play', gameData.lastPlay);
                         socket.broadcast.emit('last_play', gameData.lastPlay);
                         gameData.discarded.push(card);
-                        socket.emit('discard', card);
-                        socket.broadcast.emit('discard', card);
+                        socket.emit('discarded', card);
+                        socket.broadcast.emit('discarded', card);
                         socket.emit('redraw_mine', angles_array(gameData.hands[pseudo]));
                         socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
                         if (gameData.informations != 8) {
