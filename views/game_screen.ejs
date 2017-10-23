@@ -332,6 +332,11 @@
                         alert('No information available!');
                     });
 
+                    socket.on('game_end', function(message) {
+                        alert(message);
+                        socket.close();
+                    });
+
 
                     var card_angles = [0,0,0,0,0];
 

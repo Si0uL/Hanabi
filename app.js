@@ -167,6 +167,10 @@ io.sockets.on('connection', function (socket, pseudo) {
                                 socket.emit('info', 'add');
                                 socket.broadcast.emit('info', 'add');
                             }
+                            if (gameData.black + gameData.green + gameData.red + gameData.yellow + gameData.blue + gameData.multicolor == 30) {
+                                socket.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
+                                socket.broadcast.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
+                            }
                         // Incorrect case
                         } else {
                             console.log("Incorrect,", gameData.warnings+1, "warnings");
@@ -180,6 +184,10 @@ io.sockets.on('connection', function (socket, pseudo) {
                             gameData.warnings ++;
                             socket.emit('warning', {card: card, pseudo: socket.pseudo});
                             socket.broadcast.emit('warning', {card: card, pseudo: socket.pseudo});
+                            if (gameData.warnings == 3) {
+                                socket.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
+                                socket.broadcast.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
+                            }
                         }
                         // Send drawn card
                         socket.emit('you_drew');
