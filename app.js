@@ -114,11 +114,6 @@ players.forEach(function(name) {
     };
 });
 
-//test to try discarded display
-for (var i = 0; i < 10; i++) {
-    gameData.discarded.push(gameData.deck.pop());
-}
-
 gameData.remainingCards = gameData.deck.length;
 
 console.log(gameData.hands);
