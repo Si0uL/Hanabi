@@ -81,7 +81,13 @@ var reorder_correct = function(str) {
     return to_return;
 }
 
-var players = ['Kant', 'Zensio', 'Louis', 'Antonin'];
+var players = process.argv.splice(2);
+
+// Wrong number of players
+if (players.length < 2 || players.length > 5) {
+    throw "You must choose between 2 and 5 players"
+}
+
 var indexNextToPlay = Math.trunc(Math.random()*players.length);
 
 var cardsPerPlayer = [null,null,5,5,4,4][players.length];
