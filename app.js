@@ -105,6 +105,7 @@ var indexNextToPlay = Math.trunc(Math.random()*players.length);
 var cardsPerPlayer = [null,null,5,5,4,4][players.length];
 
 var gameData = {
+    players: players,
     hands: {},
     deck: dealer(),
     found: {
@@ -121,6 +122,7 @@ var gameData = {
     discarded: [],
     discardedToDsiplay: [],
     nextToPlay: players[indexNextToPlay],
+    indexNextToPlay: indexNextToPlay,
     cardsPerPlayer: cardsPerPlayer,
     lastPlay: "",
 };
@@ -179,91 +181,118 @@ io.sockets.on('connection', function (socket) {
                     console.log(socket.pseudo,"logged in.");
 
                     socket.on('playRequest', function(card_index) {
-                        // update gameData
-                        var card = gameData.hands[socket.pseudo].splice(card_index,1)[0];
-                        var drawnCard = gameData.deck.pop();
-                        gameData.remainingCards --;
-                        gameData.hands[socket.pseudo].push(drawnCard);
-                        console.log(socket.pseudo, "plays",card);
-                        // Correct case
-                        if (card.number == (gameData.found[card.color]+1)) {
-                            console.log("Correct");
-                            gameData.lastPlay = socket.pseudo + " plays " + card.color + " " + card.number;
-                            console.log(gameData.lastPlay);
-                            socket.emit('last_play', gameData.lastPlay);
-                            socket.broadcast.emit('last_play', gameData.lastPlay);
-                            gameData.found[card.color] ++;
-                            socket.emit('played', card.color);
-                            socket.broadcast.emit('played', card.color);
-                            if (card.number == 5 && gameData.informations != 8) {
-                                gameData.informations ++;
-                                socket.emit('info', 'add');
-                                socket.broadcast.emit('info', 'add');
-                            }
-                            if (gameData.black + gameData.green + gameData.red + gameData.yellow + gameData.blue + gameData.multicolor == 30) {
-                                socket.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
-                                socket.broadcast.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
-                            }
-                        // Incorrect case
+                        if (socket.pseudo != gameData.nextToPlay) {
+                            socket.emit('notify', 'It\'s not your turn');
                         } else {
-                            console.log("Incorrect,", gameData.warnings+1, "warnings");
-                            gameData.lastPlay = socket.pseudo + " atemps to play " + card.color + " " + card.number;
+                            // update gameData
+                            var card = gameData.hands[socket.pseudo].splice(card_index,1)[0];
+                            var drawnCard = gameData.deck.pop();
+                            gameData.remainingCards --;
+                            gameData.hands[socket.pseudo].push(drawnCard);
+                            console.log(socket.pseudo, "plays",card);
+                            // Correct case
+                            if (card.number == (gameData.found[card.color]+1)) {
+                                console.log("Correct");
+                                gameData.lastPlay = socket.pseudo + " plays " + card.color + " " + card.number;
+                                console.log(gameData.lastPlay);
+                                socket.emit('last_play', gameData.lastPlay);
+                                socket.broadcast.emit('last_play', gameData.lastPlay);
+                                gameData.found[card.color] ++;
+                                socket.emit('played', card.color);
+                                socket.broadcast.emit('played', card.color);
+                                if (card.number == 5 && gameData.informations != 8) {
+                                    gameData.informations ++;
+                                    socket.emit('info', 'add');
+                                    socket.broadcast.emit('info', 'add');
+                                }
+                                if (gameData.black + gameData.green + gameData.red + gameData.yellow + gameData.blue + gameData.multicolor == 30) {
+                                    socket.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
+                                    socket.broadcast.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
+                                }
+                            // Incorrect case
+                            } else {
+                                console.log("Incorrect,", gameData.warnings+1, "warnings");
+                                gameData.lastPlay = socket.pseudo + " atemps to play " + card.color + " " + card.number;
+                                console.log(gameData.lastPlay);
+                                socket.emit('last_play', gameData.lastPlay);
+                                socket.broadcast.emit('last_play', gameData.lastPlay);
+                                gameData.discarded.push(card);
+                                socket.emit('discarded', card);
+                                socket.broadcast.emit('discarded', card);
+                                gameData.warnings ++;
+                                socket.emit('warning', {card: card, pseudo: socket.pseudo});
+                                socket.broadcast.emit('warning', {card: card, pseudo: socket.pseudo});
+                                if (gameData.warnings == 3) {
+                                    socket.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
+                                    socket.broadcast.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
+                                }
+                            }
+                            // Send drawn card
+                            socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
+                            socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
+                            // next turn
+                            gameData.indexNextToPlay = (gameData.indexNextToPlay + 1)%gameData.players.length;
+                            gameData.nextToPlay = gameData.players[gameData.indexNextToPlay];
+                            socket.emit('next_turn', gameData.nextToPlay);
+                            socket.broadcast.emit('next_turn', gameData.nextToPlay);
+                        }
+                    });
+
+                    socket.on('discardRequest', function(card_index) {
+                        if (socket.pseudo != gameData.nextToPlay) {
+                            socket.emit('notify', 'It\'s not your turn');
+                        } else {
+                            var card = gameData.hands[socket.pseudo].splice(card_index,1)[0];
+                            var drawnCard = gameData.deck.pop();
+                            gameData.remainingCards --;
+                            gameData.hands[socket.pseudo].push(drawnCard);
+                            gameData.lastPlay = socket.pseudo + " discards " + card.color + " " + card.number;
                             console.log(gameData.lastPlay);
                             socket.emit('last_play', gameData.lastPlay);
                             socket.broadcast.emit('last_play', gameData.lastPlay);
                             gameData.discarded.push(card);
                             socket.emit('discarded', card);
                             socket.broadcast.emit('discarded', card);
-                            gameData.warnings ++;
-                            socket.emit('warning', {card: card, pseudo: socket.pseudo});
-                            socket.broadcast.emit('warning', {card: card, pseudo: socket.pseudo});
-                            if (gameData.warnings == 3) {
-                                socket.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
-                                socket.broadcast.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
+                            socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
+                            socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
+                            if (gameData.informations != 8) {
+                                gameData.informations ++;
+                                socket.emit('info', 'add');
+                                socket.broadcast.emit('info', 'add');
                             }
-                        }
-                        // Send drawn card
-                        socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
-                        socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
-                    });
-
-                    socket.on('discardRequest', function(card_index) {
-                        var card = gameData.hands[socket.pseudo].splice(card_index,1)[0];
-                        var drawnCard = gameData.deck.pop();
-                        gameData.remainingCards --;
-                        gameData.hands[socket.pseudo].push(drawnCard);
-                        gameData.lastPlay = socket.pseudo + " discards " + card.color + " " + card.number;
-                        console.log(gameData.lastPlay);
-                        socket.emit('last_play', gameData.lastPlay);
-                        socket.broadcast.emit('last_play', gameData.lastPlay);
-                        gameData.discarded.push(card);
-                        socket.emit('discarded', card);
-                        socket.broadcast.emit('discarded', card);
-                        socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
-                        socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
-                        if (gameData.informations != 8) {
-                            gameData.informations ++;
-                            socket.emit('info', 'add');
-                            socket.broadcast.emit('info', 'add');
+                            // next turn
+                            gameData.indexNextToPlay = (gameData.indexNextToPlay + 1)%gameData.players.length;
+                            gameData.nextToPlay = gameData.players[gameData.indexNextToPlay];
+                            socket.emit('next_turn', gameData.nextToPlay);
+                            socket.broadcast.emit('next_turn', gameData.nextToPlay);
                         }
                     });
 
                     socket.on('infoRequest', function(data) {
-                        if (gameData.informations != 0) {
-                            if (is_info_correct(data.info, gameData.hands[data.player])) {
-                                var sentence = eval_info(data.info, gameData.hands[data.player]);
-                                gameData.lastPlay = socket.pseudo + " says " + data.player + ": " + sentence;
-                                console.log(gameData.lastPlay);
-                                socket.emit('last_play', gameData.lastPlay);
-                                socket.broadcast.emit('last_play', gameData.lastPlay);
-                                gameData.informations --;
-                                socket.emit('info', 'remove');
-                                socket.broadcast.emit('info', 'remove');
-                            } else {
-                                socket.emit('notify', data.player + " has no " + data.info + " in his hand !");
-                            }
+                        if (socket.pseudo != gameData.nextToPlay) {
+                            socket.emit('notify', 'It\'s not your turn');
                         } else {
-                            socket.emit('notify', 'No information available!');
+                            if (gameData.informations != 0) {
+                                if (is_info_correct(data.info, gameData.hands[data.player])) {
+                                    var sentence = eval_info(data.info, gameData.hands[data.player]);
+                                    gameData.lastPlay = socket.pseudo + " says " + data.player + ": " + sentence;
+                                    console.log(gameData.lastPlay);
+                                    socket.emit('last_play', gameData.lastPlay);
+                                    socket.broadcast.emit('last_play', gameData.lastPlay);
+                                    gameData.informations --;
+                                    socket.emit('info', 'remove');
+                                    socket.broadcast.emit('info', 'remove');
+                                    // next turn
+                                    gameData.indexNextToPlay = (gameData.indexNextToPlay + 1)%gameData.players.length;
+                                    gameData.nextToPlay = gameData.players[gameData.indexNextToPlay];
+                                    socket.emit('next_turn', gameData.nextToPlay);
+                                    socket.broadcast.emit('next_turn', gameData.nextToPlay);
+                                } else {
+                                    socket.emit('notify', data.player + " has no " + data.info + " in his hand !");
+                                }
+                            } else {
+                                socket.emit('notify', 'No information available!');
+                            }
                         }
                     });
 

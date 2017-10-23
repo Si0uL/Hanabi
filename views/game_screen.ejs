@@ -42,7 +42,7 @@
                     <table id="others">
                     </table>
 
-                    <span class="title">Your hand:</span>
+                    <span class="title" id="You">You:</span>
                     <table>
                         <tr>
                             <% for (var i = 0; i<cardsPerPlayer; i++) { %>
@@ -264,7 +264,7 @@
                     document.getElementById('remaining-cards').innerHTML = gameData.remainingCards;
 
                     function init_hand (new_hand, player_name) {
-                        var table = '<tr><td class="title">' + player_name + ':</td></tr><tr id="' + player_name + '_hand">';
+                        var table = '<tr><td id="' + player_name + '" class="title">' + player_name + ':</td></tr><tr id="' + player_name + '_hand">';
                         for (var i = new_hand.length-1; i > -1; i--) {
                             table += '<td><img src="/img/cards/' + new_hand[i].color + new_hand[i].number + '.png" id="' + player_name + i + '" style="border:3px solid black; margin:0px 5px; padding:5px;"></td>'
                         }
@@ -297,6 +297,12 @@
                     }
 
                     document.getElementById('last-play').innerHTML = gameData.lastPlay;
+
+                    if (gameData.nextToPlay == pseudo) {
+                        document.getElementById('You').style.color = '#FD0020';
+                    } else {
+                        document.getElementById(gameData.nextToPlay).style.color = '#FD0020';
+                    }
 
                     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     // Beginning of EventListeners
@@ -336,7 +342,6 @@
                     });
 
                     socket.on('redraw_mine', function(data) {
-                        console.log(data);
                         data.forEach(function(elt, id) {
                             if (elt == -1) {
                                 document.getElementById('mycard'+id).src = "/img/cross.svg";
@@ -365,7 +370,23 @@
                         }
                     });
 
-                    socket.on('notify', function(mesage) {
+                    socket.on('next_turn', function(playerUp) {
+                        for (var name in gameData.hands) {
+                            if (name == playerUp) {
+                                document.getElementById(name).style.color = '#FD0020';
+                            } else {
+                                document.getElementById(name).style.color = '#000000';
+                            }
+                        }
+                        if (pseudo == playerUp) {
+                            document.getElementById('You').style.color = '#FD0020';
+                        } else {
+                            document.getElementById('You').style.color = '#000000';
+                        }
+                        alert(playerUp + " is up!");
+                    });
+
+                    socket.on('notify', function(message) {
                         alert(message);
                     });
 
