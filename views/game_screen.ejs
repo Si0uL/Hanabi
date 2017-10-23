@@ -256,6 +256,9 @@
                 //LOGIN CONFIRMED, MAIN STARTING
                 socket.on('init', function(gameData) {
 
+                    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    // INIT OF PAGE
+
                     document.title = pseudo + ' - ' + document.title;
 
                     document.getElementById('remaining-cards').innerHTML = gameData.remainingCards;
@@ -289,6 +292,11 @@
                         document.getElementById('info' + i).style['visibility'] = "visible";
                     }
 
+                    for (var i = 0; i < gameData.warnings; i++) {
+                        document.getElementById('warning' + i).style['visibility'] = "visible";
+                    }
+
+                    document.getElementById('last-play').innerHTML = gameData.lastPlay;
 
                     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     // Beginning of EventListeners
