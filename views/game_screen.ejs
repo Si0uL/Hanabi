@@ -307,20 +307,7 @@
                         gameData.warnings ++;
                         alert('Warning: ' + data.pseudo + ' attempted to play the ' + data.card.color + ' ' + data.card.number);
                     });
-/*
-                    socket.on('card_drawn', function(data) {
-                        for (var i = data.lastCardIndex; i < gameData.cardsPerPlayer-1; i++) {
-                            document.getElementById(data.pseudo + i).src = document.getElementById(data.pseudo + (i+1)).src;
-                        }
-                        document.getElementById(data.pseudo + (gameData.cardsPerPlayer-1)).src = "/img/cards/" + data.drawnCard.color + data.drawnCard.number + ".png";
-                        document.getElementById('remaining-cards').innerHTML --;
-                    });
-*/
-                    /*
-                    socket.on('you_drew', function() {
-                        document.getElementById('remaining-cards').innerHTML --;
-                    });
-                    */
+
                     socket.on('last_play', function(message) {
                         document.getElementById('last-play').innerHTML = message;
                     });
@@ -387,23 +374,11 @@
 
                     $('body').on('click', '.rotate-left', function() {
                         var id = Number ($(this).data('index'));
-                        /*
-                        gameData.your_cards_arrow[id] = (gameData.your_cards_arrow[id] - 90)%360;
-                        document.getElementById('mycard'+id).style.transform="rotate(" + gameData.your_cards_arrow[id] + "deg)"; //default
-                        document.getElementById('mycard'+id).style["-webkit-transform"]="rotate(" + gameData.your_cards_arrow[id] + "deg)"; //Chrome, Safari, Opera
-                        document.getElementById('mycard'+id).style["-ms-transform"]="rotate(" + gameData.your_cards_arrow[id] + "deg)"; //IE
-                        */
                         socket.emit('rotateRequest', {id: id, angle: 90});
                     });
 
                     $('body').on('click', '.rotate-right', function() {
                         var id = Number ($(this).data('index'));
-                        /*
-                        gameData.your_cards_arrow[id] = (gameData.your_cards_arrow[id] + 90)%360;
-                        document.getElementById('mycard'+id).style.transform="rotate(" + gameData.your_cards_arrow[id] + "deg)"; //default
-                        document.getElementById('mycard'+id).style["-webkit-transform"]="rotate(" + gameData.your_cards_arrow[id] + "deg)"; //Chrome, Safari, Opera
-                        document.getElementById('mycard'+id).style["-ms-transform"]="rotate(" + gameData.your_cards_arrow[id] + "deg)"; //IE
-                        */
                         socket.emit('rotateRequest', {id: id, angle: -90});
                     });
 
