@@ -9,11 +9,11 @@ var dealer = function () {
     cards = [];
     ['black', 'red', 'blue', 'yellow', 'green'].forEach(function(color){
         [1,1,1,2,2,3,3,4,4,5].forEach(function(number){
-            cards.push({number: number, color: color});
+            cards.push({number: number, color: color, angle: 0});
         });
     });
     for (var i = 1; i < 6; i++) {
-        cards.push({number: i, color: 'multicolor'});
+        cards.push({number: i, color: 'multicolor', angle: 0});
     };
     var cards_dealt = [];
     for (var i = 0; i < 55; i++) {
@@ -122,7 +122,7 @@ app.use(express.static('views'))
 });
 
 
-io.sockets.on('connection', function (socket, pseudo) {
+io.sockets.on('connection', function (socket) {
 
     console.log("connection");
 
@@ -140,6 +140,10 @@ io.sockets.on('connection', function (socket, pseudo) {
                     //!!!!!!!!!!!!!!!!!!!
                     //Etering The main
                     var to_send = JSON.parse(JSON.stringify(gameData));
+                    to_send.your_cards_angles = [];
+                    to_send.hands[pseudo].forEach(function(elt) {
+                        to_send.your_cards_angles.push(-elt.angle);
+                    });
                     delete to_send.hands[pseudo];
                     delete to_send.deck;
                     socket.emit('init', to_send);
@@ -190,8 +194,12 @@ io.sockets.on('connection', function (socket, pseudo) {
                             }
                         }
                         // Send drawn card
-                        socket.emit('you_drew');
-                        socket.broadcast.emit('card_drawn', {pseudo: socket.pseudo, drawnCard: drawnCard, lastCardIndex: card_index});
+                        var to_send = [];
+                        gameData.hands[pseudo].forEach(function(elt) {
+                            to_send.push(-elt.angle);
+                        });
+                        socket.emit('redraw_mine', to_send);
+                        socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
                     });
 
                     socket.on('discardRequest', function(card_index) {
@@ -206,8 +214,12 @@ io.sockets.on('connection', function (socket, pseudo) {
                         gameData.discarded.push(card);
                         socket.emit('discard', card);
                         socket.broadcast.emit('discard', card);
-                        socket.emit('you_drew');
-                        socket.broadcast.emit('card_drawn', {pseudo: socket.pseudo, drawnCard: drawnCard, lastCardIndex: card_index});
+                        var to_send = [];
+                        gameData.hands[pseudo].forEach(function(elt) {
+                            to_send.push(-elt.angle);
+                        });
+                        socket.emit('redraw_mine', to_send);
+                        socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
                         if (gameData.informations != 8) {
                             gameData.informations ++;
                             socket.emit('info', 'add');
@@ -232,6 +244,17 @@ io.sockets.on('connection', function (socket, pseudo) {
                         } else {
                             socket.emit('no_info');
                         }
+                    });
+
+                    socket.on('rotateRequest', function(data) {
+                        console.log(socket.pseudo,"wants to rotate his card nb",data.id,"by an angle of",data.angle,"degrees");
+                        gameData.hands[socket.pseudo][data.id].angle += data.angle;
+                        var to_send = [];
+                        gameData.hands[pseudo].forEach(function(elt) {
+                            to_send.push(-elt.angle);
+                        });
+                        socket.emit('redraw_mine', to_send);
+                        socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
                     });
 
                 } else {
