@@ -81,6 +81,18 @@ var reorder_correct = function(str) {
     return to_return;
 }
 
+var angles_array = function(hand) {
+    var to_return = [];
+    hand.forEach(function(elt) {
+        if (!elt) {
+            to_return.push(-1);
+        } else {
+            to_return.push(-elt.angle);
+        }
+    });
+    return to_return
+}
+
 var players = process.argv.splice(2);
 
 // Wrong number of players
@@ -211,11 +223,7 @@ io.sockets.on('connection', function (socket) {
                             }
                         }
                         // Send drawn card
-                        var to_send = [];
-                        gameData.hands[pseudo].forEach(function(elt) {
-                            to_send.push(-elt.angle);
-                        });
-                        socket.emit('redraw_mine', to_send);
+                        socket.emit('redraw_mine', angles_array(gameData.hands[pseudo]));
                         socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
                     });
 
@@ -231,11 +239,7 @@ io.sockets.on('connection', function (socket) {
                         gameData.discarded.push(card);
                         socket.emit('discard', card);
                         socket.broadcast.emit('discard', card);
-                        var to_send = [];
-                        gameData.hands[pseudo].forEach(function(elt) {
-                            to_send.push(-elt.angle);
-                        });
-                        socket.emit('redraw_mine', to_send);
+                        socket.emit('redraw_mine', angles_array(gameData.hands[pseudo]));
                         socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
                         if (gameData.informations != 8) {
                             gameData.informations ++;
@@ -266,11 +270,7 @@ io.sockets.on('connection', function (socket) {
                     socket.on('rotateRequest', function(data) {
                         console.log(socket.pseudo,"wants to rotate his card nb",data.id,"by an angle of",data.angle,"degrees");
                         gameData.hands[socket.pseudo][data.id].angle += data.angle;
-                        var to_send = [];
-                        gameData.hands[pseudo].forEach(function(elt) {
-                            to_send.push(-elt.angle);
-                        });
-                        socket.emit('redraw_mine', to_send);
+                        socket.emit('redraw_mine', angles_array(gameData.hands[pseudo]));
                         socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
                     });
 
@@ -283,11 +283,7 @@ io.sockets.on('connection', function (socket) {
                             }
                             gameData.hands[socket.pseudo] = new_hand;
                             console.log(socket.pseudo,"reorders his hand. New hand:",new_hand);
-                            var to_send = [];
-                            gameData.hands[pseudo].forEach(function(elt) {
-                                to_send.push(-elt.angle);
-                            });
-                            socket.emit('redraw_mine', to_send);
+                            socket.emit('redraw_mine', angles_array(gameData.hands[pseudo]));
                             socket.emit('notify', 'Reordered, changes applied.');
                             socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
                         } else {

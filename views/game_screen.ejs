@@ -332,19 +332,32 @@
                     });
 
                     socket.on('redraw_mine', function(data) {
+                        console.log(data);
                         data.forEach(function(elt, id) {
-                            document.getElementById('mycard'+id).style.transform="rotate(" + elt + "deg)"; //default
-                            document.getElementById('mycard'+id).style["-webkit-transform"]="rotate(" + elt + "deg)"; //Chrome, Safari, Opera
-                            document.getElementById('mycard'+id).style["-ms-transform"]="rotate(" + elt + "deg)"; //IE
+                            if (elt == -1) {
+                                document.getElementById('mycard'+id).src = "/img/cross.svg";
+                                document.getElementById('mycard'+id).style.height = "128px";
+                            } else {
+                                document.getElementById('mycard'+id).style.transform="rotate(" + elt + "deg)"; //default
+                                document.getElementById('mycard'+id).style["-webkit-transform"]="rotate(" + elt + "deg)"; //Chrome, Safari, Opera
+                                document.getElementById('mycard'+id).style["-ms-transform"]="rotate(" + elt + "deg)"; //IE
+                            }
                         });
                     });
 
                     socket.on('redraw', function(data) {
+                        data.hand.forEach(function(elt, i) {
+                            if (!elt) {
+                                document.getElementById(data.pseudo + i).src = "/img/cross.svg";
+                                document.getElementById(data.pseudo + i).style.height = "128px";
+                            } else {
+                                document.getElementById(data.pseudo + i).src = "/img/cards/" + elt.color + elt.number + ".png";
+                                document.getElementById(data.pseudo + i).style.transform="rotate(" + elt.angle + "deg)"; //default
+                                document.getElementById(data.pseudo + i).style["-webkit-transform"]="rotate(" + elt.angle + "deg)"; //Chrome, Safari, Opera
+                                document.getElementById(data.pseudo + i).style["-ms-transform"]="rotate(" + elt.angle + "deg)"; //IE
+                            }
+                        })
                         for (var i=0; i< gameData.cardsPerPlayer; i++) {
-                            document.getElementById(data.pseudo + i).src = "/img/cards/" + data.hand[i].color + data.hand[i].number + ".png";
-                            document.getElementById(data.pseudo + i).style.transform="rotate(" + data.hand[i].angle + "deg)"; //default
-                            document.getElementById(data.pseudo + i).style["-webkit-transform"]="rotate(" + data.hand[i].angle + "deg)"; //Chrome, Safari, Opera
-                            document.getElementById(data.pseudo + i).style["-ms-transform"]="rotate(" + data.hand[i].angle + "deg)"; //IE
                         }
                     });
 
