@@ -92,7 +92,7 @@
                                     <tr>
                                         <% for (var col = 0; col<4; col++) { %>
                                             <td>
-                                                <img src="/img/info.svg" id="info<%= 4*row+col+1 %>" style="height:20px;">
+                                                <img src="/img/info.svg" id="info<%= 4*row+col %>" style="height:20px; visibility:hidden;">
                                             </td>
                                         <% }; %>
                                     </tr>
@@ -256,6 +256,14 @@
                         discarded_number ++;
                     });
 
+                    for (var i = 0; i < gameData.informations; i++) {
+                        document.getElementById('info' + i).style['visibility'] = "visible";
+                    }
+
+
+                    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    // Beginning of EventListeners
+
                     socket.on('discard', function(card) {
                         add_discarded(card, discarded_number);
                         discarded_number ++;
@@ -266,11 +274,21 @@
                         document.getElementById('played_' + color).src = "/img/cards/" + color + gameData.found[color] + ".png";
                     });
 
+                    socket.on('info', function(str) {
+                        if (str == 'add') {
+                            document.getElementById('info' + gameData.informations).style['visibility'] = "visible";
+                            gameData.informations ++;
+                        } else {
+                            gameData.informations --;
+                            document.getElementById('info' + gameData.informations).style['visibility'] = "hidden";
+                        }
+                    });
+
                     socket.on('warning', function(data) {
                         document.getElementById('warning'+gameData.warnings).style["visibility"]="visible";
                         gameData.warnings ++;
                         alert('Warning: ' + data.pseudo + ' attempted to play the ' + data.card.color + ' ' + data.card.number);
-                    })
+                    });
 
                     socket.on('card_drawn', function(data) {
                         for (var i = data.lastCardIndex; i < gameData.cardsPerPlayer-1; i++) {
@@ -286,6 +304,11 @@
                     socket.on('wrong_info', function(message) {
                         alert(message);
                     });
+
+                    socket.on('no_info', function() {
+                        alert('No information available!');
+                    });
+
 
                     var card_angles = [0,0,0,0,0];
 

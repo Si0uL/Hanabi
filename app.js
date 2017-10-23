@@ -156,15 +156,22 @@ io.sockets.on('connection', function (socket, pseudo) {
                         if (card.number == (gameData.found[card.color]+1)) {
                             console.log("Correct");
                             gameData.lastPlay = socket.pseudo + " plays " + card.color + " " + card.number;
+                            console.log(gameData.lastPlay);
                             socket.emit('last_play', gameData.lastPlay);
                             socket.broadcast.emit('last_play', gameData.lastPlay);
                             gameData.found[card.color] ++;
                             socket.emit('played', card.color);
                             socket.broadcast.emit('played', card.color);
+                            if (card.number == 5 && gameData.informations != 8) {
+                                gameData.informations ++;
+                                socket.emit('info', 'add');
+                                socket.broadcast.emit('info', 'add');
+                            }
                         // Incorrect case
                         } else {
                             console.log("Incorrect,", gameData.warnings+1, "warnings");
                             gameData.lastPlay = socket.pseudo + " atemps to play " + card.color + " " + card.number;
+                            console.log(gameData.lastPlay);
                             socket.emit('last_play', gameData.lastPlay);
                             socket.broadcast.emit('last_play', gameData.lastPlay);
                             gameData.discarded.push(card);
@@ -183,25 +190,37 @@ io.sockets.on('connection', function (socket, pseudo) {
                         var drawnCard = gameData.deck.pop();
                         gameData.remainingCards --;
                         gameData.hands[socket.pseudo].push(drawnCard);
-                        console.log(socket.pseudo, "discards", card);
                         gameData.lastPlay = socket.pseudo + " discards " + card.color + " " + card.number;
+                        console.log(gameData.lastPlay);
                         socket.emit('last_play', gameData.lastPlay);
                         socket.broadcast.emit('last_play', gameData.lastPlay);
                         gameData.discarded.push(card);
                         socket.emit('discard', card);
                         socket.broadcast.emit('discard', card);
                         socket.broadcast.emit('card_drawn', {pseudo: socket.pseudo, drawnCard: drawnCard, lastCardIndex: card_index});
+                        if (gameData.informations != 8) {
+                            gameData.informations ++;
+                            socket.emit('info', 'add');
+                            socket.broadcast.emit('info', 'add');
+                        }
                     });
 
                     socket.on('infoRequest', function(data) {
-                        if (is_info_correct(data.info, gameData.hands[data.player])) {
-                            var sentence = eval_info(data.info, gameData.hands[data.player]);
-                            gameData.lastPlay = socket.pseudo + " says " + data.player + ": " + sentence;
-                            console.log(gameData.lastPlay);
-                            socket.emit('last_play', gameData.lastPlay);
-                            socket.broadcast.emit('last_play', gameData.lastPlay);
+                        if (gameData.informations != 0) {
+                            if (is_info_correct(data.info, gameData.hands[data.player])) {
+                                var sentence = eval_info(data.info, gameData.hands[data.player]);
+                                gameData.lastPlay = socket.pseudo + " says " + data.player + ": " + sentence;
+                                console.log(gameData.lastPlay);
+                                socket.emit('last_play', gameData.lastPlay);
+                                socket.broadcast.emit('last_play', gameData.lastPlay);
+                                gameData.informations --;
+                                socket.emit('info', 'remove');
+                                socket.broadcast.emit('info', 'remove');
+                            } else {
+                                socket.emit('wrong_info', data.player + " has no " + data.info + " in his hand !");
+                            }
                         } else {
-                            socket.emit('wrong_info', data.player + " has no " + data.info + " in his hand !");
+                            socket.emit('no_info');
                         }
                     });
 
