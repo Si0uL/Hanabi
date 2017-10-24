@@ -230,7 +230,7 @@
         <script>
 
             // Connexion à socket.io
-            var socket = io.connect('http://localhost:3333');
+            var socket = io.connect('http://78.194.75.49:3333');
 
             var pseudo = prompt('What is your name ?');
             socket.emit('nouveau_client', pseudo);
@@ -268,6 +268,12 @@
                         }
                         table += '</tr><tr><td><br></td></tr>';
                         $('#others').append(table);
+                        // init rotations
+                        for (var i = 0; i < new_hand.length; i++) {
+                            document.getElementById(player_name + i).style.transform="rotate(" + new_hand[i].angle + "deg)"; //default
+                            document.getElementById(player_name + i).style["-webkit-transform"]="rotate(" + new_hand[i].angle + "deg)"; //Chrome, Safari, Opera
+                            document.getElementById(player_name + i).style["-ms-transform"]="rotate(" + new_hand[i].angle + "deg)"; //IE
+                        }
                     }
 
                     function add_discarded (card, index) {
@@ -306,6 +312,12 @@
                         document.getElementById('You').style.color = '#FD0020';
                     } else {
                         document.getElementById(gameData.nextToPlay).style.color = '#FD0020';
+                    }
+
+                    for (var color in gameData.found) {
+                        if (gameData.found[color] != 0) {
+                            document.getElementById('played_' + color).src = "/img/cards/" + color + gameData.found[color] + ".png";
+                        }
                     }
 
                     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
