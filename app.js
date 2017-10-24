@@ -108,6 +108,7 @@ var gameData = {
     players: players,
     hands: {},
     deck: dealer(),
+    score: 0,
     found: {
         'black': 0,
         'red': 0,
@@ -189,12 +190,9 @@ io.sockets.on('connection', function (socket) {
                         if (gameData.remainingTurns > 0) {
                             gameData.remainingTurns --;
                         } else if (gameData.remainingTurns == 0) {
-                            var score = 0;
-                            gameData.found.forEach(function(elt) {
-                                score += elt;
-                            });
-                            socket.emit('game_end', "Game finished: You scored " + score);
-                            socket.broadcast.emit('game_end', "Game finished: You scored " + score);
+                            socket.emit('game_end', "Game finished: You scored " + gameData.score);
+                            socket.broadcast.emit('game_end', "Game finished: You scored " + gameData.score);
+                            console.log("GAME FINISHED, SCORE: " + gameData.score);
                         }
                     }
 
@@ -210,6 +208,7 @@ io.sockets.on('connection', function (socket) {
                             console.log(socket.pseudo, "plays",card);
                             // Correct case
                             if (card.number == (gameData.found[card.color]+1)) {
+                                gameData.score ++;
                                 console.log("Correct");
                                 gameData.lastPlay = socket.pseudo + " plays " + card.color + " " + card.number;
                                 console.log(gameData.lastPlay);
@@ -223,9 +222,10 @@ io.sockets.on('connection', function (socket) {
                                     socket.emit('info', 'add');
                                     socket.broadcast.emit('info', 'add');
                                 }
-                                if (gameData.black + gameData.green + gameData.red + gameData.yellow + gameData.blue + gameData.multicolor == 30) {
+                                if (gameData.score == 30) {
                                     socket.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
                                     socket.broadcast.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
+                                    console.log("GAME FINISHED, SCORE: 30");
                                 }
                             // Incorrect case
                             } else {
@@ -243,6 +243,7 @@ io.sockets.on('connection', function (socket) {
                                 if (gameData.warnings == 3) {
                                     socket.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
                                     socket.broadcast.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
+                                    console.log("GAME FINISHED, SCORE: 0");
                                 }
                             }
                             // Send drawn card
