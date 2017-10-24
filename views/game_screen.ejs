@@ -277,10 +277,16 @@
                         $('#discarded_row' + Math.trunc(index/7)).append(col);
                     }
 
-                    for (var name in gameData.hands) {
-                        init_hand(gameData.hands[name], name);
-                        $('#player-form').append('<input type="radio" name="player" value="' + name + '"><span class="body"> ' + name + '</span><br>')
-                    }
+                    // to ensure good hands ordering
+                    gameData.players.forEach(function(elt,n) {
+                        if (elt == pseudo) {
+                            for (var i = 0; i < gameData.players.length-1; i++) {
+                                var name = gameData.players[(i+n+1)%gameData.players.length];
+                                init_hand(gameData.hands[name], name);
+                                $('#player-form').append('<input type="radio" name="player" value="' + name + '"><span class="body"> ' + name + '</span><br>')
+                            }
+                        }
+                    })
 
                     var discarded_number = 0;
                     gameData.discarded.forEach(function(card) {
