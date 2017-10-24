@@ -93,17 +93,25 @@ var angles_array = function(hand) {
     return to_return
 }
 
-var players = process.argv.splice(2);
 
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// Beginning of main
+
+// Arguments reading
+if (!["-test", "-game"].includes(process.argv[2])) {
+    throw "Invalid second argument, use '-test' or '-game'"
+}
+var game_mode = (process.argv[2] == "-game");
+
+var players = process.argv.splice(3);
 // Wrong number of players
 if (players.length < 2 || players.length > 5) {
     throw "You must choose between 2 and 5 players"
 }
 
+// Init of game variables
 var indexNextToPlay = Math.trunc(Math.random()*players.length);
-
 var cardsPerPlayer = [null,null,5,5,4,4][players.length];
-
 var gameData = {
     players: players,
     hands: {},
@@ -129,6 +137,7 @@ var gameData = {
     lastPlay: "",
 };
 
+// Cards deal
 players.forEach(function(name) {
     gameData.hands[name] = [];
     for (var i = 0; i < cardsPerPlayer; i++) {
@@ -141,10 +150,11 @@ gameData.remainingCards = gameData.deck.length;
 console.log(gameData.hands);
 console.log(gameData);
 
-/* On utilise les sessions */
+
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// Express Routes
 app.use(express.static('views'))
 
-/* On affiche la page de tosolist par défaut */
 .get('/game', function(req, res) {
     res.render('game_screen.ejs', {cardsPerPlayer: cardsPerPlayer});
 })
@@ -155,6 +165,8 @@ app.use(express.static('views'))
 });
 
 
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// EventListeners
 io.sockets.on('connection', function (socket) {
 
     console.log("connection");
@@ -185,8 +197,8 @@ io.sockets.on('connection', function (socket) {
                     var next_turn = function() {
                         gameData.indexNextToPlay = (gameData.indexNextToPlay + 1)%gameData.players.length;
                         gameData.nextToPlay = gameData.players[gameData.indexNextToPlay];
-                        socket.emit('next_turn', gameData.nextToPlay);
-                        socket.broadcast.emit('next_turn', gameData.nextToPlay);
+                        socket.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: game_mode, lastPlay: gameData.lastPlay});
+                        socket.broadcast.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: game_mode, lastPlay: gameData.lastPlay});
                         if (gameData.remainingTurns > 0) {
                             gameData.remainingTurns --;
                         } else if (gameData.remainingTurns == 0) {
@@ -212,8 +224,6 @@ io.sockets.on('connection', function (socket) {
                                 console.log("Correct");
                                 gameData.lastPlay = socket.pseudo + " plays " + card.color + " " + card.number;
                                 console.log(gameData.lastPlay);
-                                socket.emit('last_play', gameData.lastPlay);
-                                socket.broadcast.emit('last_play', gameData.lastPlay);
                                 gameData.found[card.color] ++;
                                 socket.emit('played', card.color);
                                 socket.broadcast.emit('played', card.color);
@@ -232,8 +242,6 @@ io.sockets.on('connection', function (socket) {
                                 console.log("Incorrect,", gameData.warnings+1, "warnings");
                                 gameData.lastPlay = socket.pseudo + " atemps to play " + card.color + " " + card.number;
                                 console.log(gameData.lastPlay);
-                                socket.emit('last_play', gameData.lastPlay);
-                                socket.broadcast.emit('last_play', gameData.lastPlay);
                                 gameData.discarded.push(card);
                                 socket.emit('discarded', card);
                                 socket.broadcast.emit('discarded', card);
@@ -269,8 +277,6 @@ io.sockets.on('connection', function (socket) {
                             gameData.hands[socket.pseudo].push(drawnCard);
                             gameData.lastPlay = socket.pseudo + " discards " + card.color + " " + card.number;
                             console.log(gameData.lastPlay);
-                            socket.emit('last_play', gameData.lastPlay);
-                            socket.broadcast.emit('last_play', gameData.lastPlay);
                             gameData.discarded.push(card);
                             socket.emit('discarded', card);
                             socket.broadcast.emit('discarded', card);
@@ -300,8 +306,6 @@ io.sockets.on('connection', function (socket) {
                                     var sentence = eval_info(data.info, gameData.hands[data.player]);
                                     gameData.lastPlay = socket.pseudo + " says " + data.player + ": " + sentence;
                                     console.log(gameData.lastPlay);
-                                    socket.emit('last_play', gameData.lastPlay);
-                                    socket.broadcast.emit('last_play', gameData.lastPlay);
                                     gameData.informations --;
                                     socket.emit('info', 'remove');
                                     socket.broadcast.emit('info', 'remove');

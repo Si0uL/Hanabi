@@ -343,10 +343,6 @@
                         alert('Warning: ' + data.pseudo + ' attempted to play the ' + data.card.color + ' ' + data.card.number);
                     });
 
-                    socket.on('last_play', function(message) {
-                        document.getElementById('last-play').innerHTML = message;
-                    });
-
                     socket.on('redraw_mine', function(data) {
                         data.forEach(function(elt, id) {
                             if (elt == -1) {
@@ -376,20 +372,23 @@
                         }
                     });
 
-                    socket.on('next_turn', function(playerUp) {
+                    socket.on('next_turn', function(data) {
+                        document.getElementById('last-play').innerHTML = data.lastPlay;
                         for (var name in gameData.hands) {
-                            if (name == playerUp) {
+                            if (name == data.playerUp) {
                                 document.getElementById(name).style.color = '#FD0020';
                             } else {
                                 document.getElementById(name).style.color = '#000000';
                             }
                         }
-                        if (pseudo == playerUp) {
+                        if (pseudo == data.playerUp) {
                             document.getElementById('You').style.color = '#FD0020';
                         } else {
                             document.getElementById('You').style.color = '#000000';
                         }
-                        // alert(playerUp + " is up!");
+                        if (data.game_mode) {
+                            alert(data.lastPlay + '\n - \n' + data.playerUp + " is up!");
+                        }
                     });
 
                     socket.on('notify', function(message) {

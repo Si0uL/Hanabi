@@ -4,8 +4,8 @@
   "description": "Hanabi online",
   "main": "client.js",
   "scripts": {
-    "test": "node app.js Louis Kant Zensio",
-    "start": "node app.js"
+    "test": "node app.js -test Louis Kant Zensio",
+    "start": "node app.js -game",
   },
   "author": "Louis Mangin",
   "license": "ISC",
