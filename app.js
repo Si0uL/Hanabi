@@ -94,6 +94,16 @@ var angles_array = function(hand) {
     return to_return
 }
 
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// Beginning of main
+
+// Arguments reading
+if (!["-test", "-game"].includes(process.argv[2])) throw "Invalid second argument, use '-test' or '-game'";
+var game_mode = (process.argv[2] == "-game");
+
+var ip = process.argv[3];
+var port = Number(process.argv[4]);
+
 // Parse passwords.JSON
 var passwords;
 
@@ -102,14 +112,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
 if (err) throw "Impossible to find your password JSON file!";
 passwords = JSON.parse(data);
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// Beginning of main
-
-// Arguments reading
-if (!["-test", "-game"].includes(process.argv[2])) throw "Invalid second argument, use '-test' or '-game'";
-var game_mode = (process.argv[2] == "-game");
-
-var players = process.argv.splice(3);
+var players = process.argv.splice(5);
 // Wrong number of players
 if (players.length < 2 || players.length > 5) throw "You must choose between 2 and 5 players";
 players.forEach(function(elt) {
@@ -162,7 +165,7 @@ console.log(gameData);
 app.use(express.static('views'))
 
 .get('/game', function(req, res) {
-    res.render('game_screen.ejs', {cardsPerPlayer: cardsPerPlayer});
+    res.render('game_screen.ejs', {cardsPerPlayer: cardsPerPlayer, address: ip + ':' + port});
 })
 
 /* On redirige vers la todolist si la page demandée n'est pas trouvée */
@@ -177,14 +180,14 @@ io.sockets.on('connection', function (socket) {
     console.log("connection");
 
     socket.on('nouveau_client', function (pseudo) {
-        pseudo = ent.encode(pseudo);
+        if (pseudo != null) pseudo = ent.encode(pseudo);
         if (players.includes(pseudo)) {
 
             socket.emit('pseudo_ok');
             socket.pseudo = pseudo;
 
             socket.on('login', function(pwd) {
-                pwd = ent.encode(pwd);
+                if (pwd != null) pwd = ent.encode(pwd);
                 if (pwd == passwords[socket.pseudo]) {
 
                     //!!!!!!!!!!!!!!!!!!!
@@ -365,5 +368,4 @@ io.sockets.on('connection', function (socket) {
 
 }); // endOf file reader
 
-console.log("Listening to port 3333 ");
-server.listen(3333);
+server.listen(port);

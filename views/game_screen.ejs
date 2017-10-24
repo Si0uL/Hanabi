@@ -230,7 +230,7 @@
         <script>
 
             // Connexion à socket.io
-            var socket = io.connect('http://78.194.75.49:3333');
+            var socket = io.connect('<%= address %>');
 
             var pseudo = prompt('What is your name ?');
             socket.emit('nouveau_client', pseudo);
