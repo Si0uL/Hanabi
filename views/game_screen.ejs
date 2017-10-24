@@ -306,14 +306,6 @@
                         document.getElementById('warning' + i).style['visibility'] = "visible";
                     }
 
-                    document.getElementById('last-play').innerHTML = gameData.lastPlay;
-
-                    if (gameData.nextToPlay == pseudo) {
-                        document.getElementById('You').style.color = '#FD0020';
-                    } else {
-                        document.getElementById(gameData.nextToPlay).style.color = '#FD0020';
-                    }
-
                     for (var color in gameData.found) {
                         if (gameData.found[color] != 0) {
                             document.getElementById('played_' + color).src = "/img/cards/" + color + gameData.found[color] + ".png";

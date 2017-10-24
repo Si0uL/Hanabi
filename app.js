@@ -200,6 +200,8 @@ io.sockets.on('connection', function (socket) {
                     delete to_send.hands[socket.pseudo];
                     delete to_send.deck;
                     socket.emit('init', to_send);
+                    socket.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: false, lastPlay: gameData.lastPlay});
+                    socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
                     console.log(socket.pseudo,"logged in.");
 
                     var next_turn = function() {
