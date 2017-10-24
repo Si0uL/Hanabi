@@ -3,6 +3,7 @@ var express = require('express');
 var app = express(),
     server = require('http').createServer(app),
     io = require('socket.io').listen(server),
+    fs = require('fs'),
     ent = require('ent');
 
 var dealer = function () {
@@ -93,21 +94,27 @@ var angles_array = function(hand) {
     return to_return
 }
 
+// Parse passwords.JSON
+var passwords;
+
+fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
+
+if (err) throw "Impossible to find your password JSON file!";
+passwords = JSON.parse(data);
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // Beginning of main
 
 // Arguments reading
-if (!["-test", "-game"].includes(process.argv[2])) {
-    throw "Invalid second argument, use '-test' or '-game'"
-}
+if (!["-test", "-game"].includes(process.argv[2])) throw "Invalid second argument, use '-test' or '-game'";
 var game_mode = (process.argv[2] == "-game");
 
 var players = process.argv.splice(3);
 // Wrong number of players
-if (players.length < 2 || players.length > 5) {
-    throw "You must choose between 2 and 5 players"
-}
+if (players.length < 2 || players.length > 5) throw "You must choose between 2 and 5 players";
+players.forEach(function(elt) {
+    if (!(elt in passwords)) throw "No registered password for " + elt;
+})
 
 // Init of game variables
 var indexNextToPlay = Math.trunc(Math.random()*players.length);
@@ -150,7 +157,6 @@ gameData.remainingCards = gameData.deck.length;
 console.log(gameData.hands);
 console.log(gameData);
 
-
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // Express Routes
 app.use(express.static('views'))
@@ -163,7 +169,6 @@ app.use(express.static('views'))
 .use(function(req, res, next){
     res.redirect('/game');
 });
-
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // EventListeners
@@ -180,7 +185,7 @@ io.sockets.on('connection', function (socket) {
 
             socket.on('login', function(pwd) {
                 pwd = ent.encode(pwd);
-                if (pwd == "test") {
+                if (pwd == passwords[socket.pseudo]) {
 
                     //!!!!!!!!!!!!!!!!!!!
                     //Etering The main
@@ -357,6 +362,8 @@ io.sockets.on('connection', function (socket) {
     });
 
 });
+
+}); // endOf file reader
 
 console.log("Listening to port 3333 ");
 server.listen(3333);

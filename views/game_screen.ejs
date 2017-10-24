@@ -242,9 +242,7 @@
 
             socket.on('pseudo_ok', function() {
 
-                //  hacked authentication for dev
-                //  var pwd = prompt('Password ?');
-                var pwd = "test";
+                var pwd = prompt('Password ?');
                 socket.emit('login', pwd);
 
                 socket.on('reject_pwd', function() {
