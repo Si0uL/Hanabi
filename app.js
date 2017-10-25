@@ -113,11 +113,16 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
     passwords = JSON.parse(data);
 
     var players = process.argv.splice(5);
+    var aux = "";
     // Wrong number of players
     if (players.length < 2 || players.length > 5) throw "You must choose between 2 and 5 players";
     players.forEach(function(elt) {
         if (!(elt in passwords)) throw "No registered password for " + elt;
-    })
+        aux += elt + " ";
+    });
+
+    console.log("GAME START: " + new Date());
+    console.log("Pleyrs: " + aux + "\n");
 
     // Init of game variables
     var indexNextToPlay = Math.trunc(Math.random()*players.length);
@@ -137,6 +142,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
         },
         informations: 8,
         warnings: 0,
+        turn: 1,
         remainingCards: 55,
         remainingTurns: -1,
         discarded: [],
@@ -159,6 +165,10 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
 
     console.log(gameData.hands);
     console.log(gameData);
+
+    console.log("\nTURN " + gameData.turn + ": " + new Date());
+    console.log(gameData.nextToPlay + " is playing:");
+    gameData.turn ++;
 
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Express Routes
@@ -211,10 +221,17 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                             socket.broadcast.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: game_mode, lastPlay: gameData.lastPlay});
                             if (gameData.remainingTurns > 0) {
                                 gameData.remainingTurns --;
+                                console.log("\nTURN " + gameData.turn + ": " + new Date());
+                                console.log(gameData.nextToPlay + " is playing:");
+                                gameData.turn ++;
                             } else if (gameData.remainingTurns == 0) {
                                 socket.emit('game_end', "Game finished: You scored " + gameData.score);
                                 socket.broadcast.emit('game_end', "Game finished: You scored " + gameData.score);
                                 console.log("GAME FINISHED, SCORE: " + gameData.score);
+                            } else {
+                                console.log("\nTURN " + gameData.turn + ": " + new Date());
+                                console.log(gameData.nextToPlay + " is playing:");
+                                gameData.turn ++;
                             }
                         }
 
