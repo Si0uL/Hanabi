@@ -5,7 +5,7 @@
   "main": "client.js",
   "scripts": {
     "test": "node app.js -test localhost 3333 Louis Kant Zensio",
-    "start": "node app.js -game",
+    "start": "node app.js -game"
   },
   "author": "Louis Mangin",
   "license": "ISC",
