@@ -122,7 +122,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
     });
 
     console.log("GAME START: " + new Date());
-    console.log("Pleyrs: " + aux + "\n");
+    console.log("Players: " + aux + "\n");
 
     // Init of game variables
     var indexNextToPlay = Math.trunc(Math.random()*players.length);
@@ -142,7 +142,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
         },
         informations: 8,
         warnings: 0,
-        turn: 1,
+        turn: 0,
         remainingCards: 55,
         remainingTurns: -1,
         discarded: [],
@@ -166,9 +166,21 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
     console.log(gameData.hands);
     console.log(gameData);
 
+    gameData.turn ++;
     console.log("\nTURN " + gameData.turn + ": " + new Date());
     console.log(gameData.nextToPlay + " is playing:");
-    gameData.turn ++;
+
+    // Json to be saved at the end:
+    var _d = new Date();
+    var jsonName = "games/" + _d.getUTCFullYear() + (_d.getUTCMonth() + 1) + _d.getUTCDate() + _d.getUTCHours() + _d.getUTCMinutes();
+    players.forEach(function (p) {
+        jsonName += "_" + p;
+    });
+    jsonName += ".json";
+    var recorded = {
+        gameDataInit: JSON.parse(JSON.stringify(gameData)),
+        turns: [[], []],
+    }
 
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Express Routes
@@ -219,19 +231,26 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                             gameData.nextToPlay = gameData.players[gameData.indexNextToPlay];
                             socket.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: game_mode, lastPlay: gameData.lastPlay});
                             socket.broadcast.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: game_mode, lastPlay: gameData.lastPlay});
+                            recorded.turns[gameData.turn].push({event: 'next_turn', data: {playerUp: gameData.nextToPlay, game_mode: game_mode, lastPlay: gameData.lastPlay}});
                             if (gameData.remainingTurns > 0) {
                                 gameData.remainingTurns --;
+                                gameData.turn ++;
                                 console.log("\nTURN " + gameData.turn + ": " + new Date());
                                 console.log(gameData.nextToPlay + " is playing:");
-                                gameData.turn ++;
+                                recorded.turns.push([]);
+                                fs.writeFileSync(jsonName, JSON.stringify(recorded));
                             } else if (gameData.remainingTurns == 0) {
                                 socket.emit('game_end', "Game finished: You scored " + gameData.score);
                                 socket.broadcast.emit('game_end', "Game finished: You scored " + gameData.score);
                                 console.log("GAME FINISHED, SCORE: " + gameData.score);
+                                recorded.turns[gameData.turn].push({event: 'game_finished', data: "Game finished: You scored " + gameData.score});
+                                fs.writeFileSync(jsonName, JSON.stringify(recorded));
                             } else {
+                                gameData.turn ++;
                                 console.log("\nTURN " + gameData.turn + ": " + new Date());
                                 console.log(gameData.nextToPlay + " is playing:");
-                                gameData.turn ++;
+                                recorded.turns.push([]);
+                                fs.writeFileSync(jsonName, JSON.stringify(recorded));
                             }
                         }
 
@@ -254,14 +273,17 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                                     gameData.found[card.color] ++;
                                     socket.emit('played', card.color);
                                     socket.broadcast.emit('played', card.color);
+                                    recorded.turns[gameData.turn].push({event: 'played', data: card.color});
                                     if (card.number == 5 && gameData.informations != 8) {
                                         gameData.informations ++;
                                         socket.emit('info', 'add');
                                         socket.broadcast.emit('info', 'add');
+                                        recorded.turns[gameData.turn].push({event: 'info', data: 'add'});
                                     }
                                     if (gameData.score == 30) {
                                         socket.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
                                         socket.broadcast.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
+                                        recorded.turns[gameData.turn].push({event: 'game_end', data: "Game finished: Congratulations, you scored 30 !!"});
                                         console.log("GAME FINISHED, SCORE: 30");
                                     }
                                 // Incorrect case
@@ -272,18 +294,22 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                                     gameData.discarded.push(card);
                                     socket.emit('discarded', card);
                                     socket.broadcast.emit('discarded', card);
+                                    recorded.turns[gameData.turn].push({event: 'discarded', data: card});
                                     gameData.warnings ++;
                                     socket.emit('warning', {card: card, pseudo: socket.pseudo});
                                     socket.broadcast.emit('warning', {card: card, pseudo: socket.pseudo});
+                                    recorded.turns[gameData.turn].push({event: 'warning', data: {card: card, pseudo: socket.pseudo}});
                                     if (gameData.warnings == 3) {
                                         socket.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
                                         socket.broadcast.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
                                         console.log("GAME FINISHED, SCORE: 0");
+                                        recorded.turns[gameData.turn].push({event: 'game_end', data: "GAME FINISHED, SCORE: 0"});
                                     }
                                 }
                                 // Send drawn card
                                 socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
                                 socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
+                                recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]}});
                                 // if last card drawn
                                 if (gameData.remainingCards == 0) {
                                     gameData.remainingTurns = gameData.players.length;
@@ -307,12 +333,15 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                                 gameData.discarded.push(card);
                                 socket.emit('discarded', card);
                                 socket.broadcast.emit('discarded', card);
+                                recorded.turns[gameData.turn].push({event: 'discarded', data: card});
                                 socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
                                 socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
+                                recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]}});
                                 if (gameData.informations != 8) {
                                     gameData.informations ++;
                                     socket.emit('info', 'add');
                                     socket.broadcast.emit('info', 'add');
+                                    recorded.turns[gameData.turn].push({event: 'info', data: 'add'});
                                 }
                                 // if last card drawn
                                 if (gameData.remainingCards == 0) {
@@ -336,6 +365,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                                         gameData.informations --;
                                         socket.emit('info', 'remove');
                                         socket.broadcast.emit('info', 'remove');
+                                        recorded.turns[gameData.turn].push({event: 'info', data: 'remove'});
                                         next_turn();
                                     } else {
                                         socket.emit('notify', data.player + " has no " + data.info + " in his hand !");
@@ -351,6 +381,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                             gameData.hands[socket.pseudo][data.id].angle += data.angle;
                             socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
                             socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
+                            recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]}});
                         });
 
                         socket.on('reorderRequest', function(str) {
@@ -365,6 +396,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                                 socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
                                 socket.emit('notify', 'Reordered, changes applied.');
                                 socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
+                                recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]}});
                             } else {
                                 socket.emit('notify', 'Invalid order given, no change applied.');
                             }
