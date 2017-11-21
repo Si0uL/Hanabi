@@ -42,6 +42,7 @@
                     <table id="others">
                     </table>
 
+                    <% if (!replayMode) { %>
                     <span class="title" id="You">You:</span>
                     <table>
                         <tr>
@@ -75,6 +76,7 @@
                             <td class="body" style="color:#999;">&nbsp;(type for instance 1423 or 24135)</td>
                         </tr>
                     </table>
+                    <% } %>
 
                 </td>
 
@@ -225,6 +227,8 @@
             </tr>
         </table>
 
+        <img class="next-event" href="javascript:void(0);" src="/img/play.svg" style="height:20px;"></a>
+
         <script src="http://code.jquery.com/jquery-1.12.2.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script>
@@ -254,6 +258,7 @@
                 //LOGIN CONFIRMED, MAIN STARTING
                 socket.on('init', function(gameData) {
 
+                    console.log(gameData);
                     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     // INIT OF PAGE
 
@@ -282,15 +287,22 @@
                     }
 
                     // to ensure good hands ordering
-                    gameData.players.forEach(function(elt,n) {
-                        if (elt == pseudo) {
-                            for (var i = 0; i < gameData.players.length-1; i++) {
-                                var name = gameData.players[(i+n+1)%gameData.players.length];
-                                init_hand(gameData.hands[name], name);
-                                $('#player-form').append('<input type="radio" name="player" value="' + name + '"><span class="body"> ' + name + '</span><br>')
+                    if (gameData.replayMode) {
+                        gameData.players.forEach(function (name) {
+                            init_hand(gameData.hands[name], name);
+                            $('#player-form').append('<input type="radio" name="player" value="' + name + '"><span class="body"> ' + name + '</span><br>');
+                        });
+                    } else {
+                        gameData.players.forEach(function(elt,n) {
+                            if (elt == pseudo) {
+                                for (var i = 0; i < gameData.players.length-1; i++) {
+                                    var name = gameData.players[(i+n+1)%gameData.players.length];
+                                    init_hand(gameData.hands[name], name);
+                                    $('#player-form').append('<input type="radio" name="player" value="' + name + '"><span class="body"> ' + name + '</span><br>')
+                                }
                             }
-                        }
-                    })
+                        });
+                    }
 
                     var discarded_number = 0;
                     gameData.discarded.forEach(function(card) {
@@ -383,10 +395,12 @@
                                 document.getElementById(name).style.color = '#000000';
                             }
                         }
-                        if (pseudo == data.playerUp) {
-                            document.getElementById('You').style.color = '#FD0020';
-                        } else {
-                            document.getElementById('You').style.color = '#000000';
+                        if (!gameData.replayMode) {
+                            if (pseudo == data.playerUp) {
+                                document.getElementById('You').style.color = '#FD0020';
+                            } else {
+                                document.getElementById('You').style.color = '#000000';
+                            }
                         }
                         if (data.game_mode) {
                             alert(data.lastPlay + '\n - \n' + data.playerUp + " is up!");
@@ -447,6 +461,11 @@
                     $('body').on('click', '.rotate-right', function() {
                         var id = Number ($(this).data('index'));
                         socket.emit('rotateRequest', {id: id, angle: -90});
+                    });
+
+                    $('body').on('click', '.next-event', function() {
+                        console.log('next');
+                        socket.emit('nextEvent');
                     });
 
                 });

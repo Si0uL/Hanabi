@@ -34,14 +34,14 @@ fs.readFile(process.argv[4], 'utf8', function(err, data) {
     recorded = JSON.parse(data);
     var gameData = recorded.gameDataInit;
     var turns = recorded.turns;
-    var eventIndex = 0;
+    gameData.eventIndex = 0;
 
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Express Routes
     app.use(express.static('views'))
 
     .get('/game', function(req, res) {
-        res.render('game_screen.ejs', {mode: 'replay', cardsPerPlayer: recorded.gameDataInit.cardsPerPlayer, address: ip + ':' + port});
+        res.render('game_screen.ejs', {replayMode: true, cardsPerPlayer: recorded.gameDataInit.cardsPerPlayer, address: ip + ':' + port});
     })
 
     /* On redirige vers la todolist si la page demandée n'est pas trouvée */
@@ -78,7 +78,9 @@ fs.readFile(process.argv[4], 'utf8', function(err, data) {
                             if (gameData.turn > gameData.nextToPlay) {
                                 socket.emit('notify', 'You already reached max. turn');
                             } else {
-                                var elt = turns[gameData.eventIndex];
+                                var elt = turns[gameData.turn][gameData.eventIndex];
+                                console.log(elt.event);
+                                console.log(elt.data);
                                 switch (elt.event) {
                                     case 'info':
                                         if (elt.data == 'add') {
@@ -94,8 +96,8 @@ fs.readFile(process.argv[4], 'utf8', function(err, data) {
                                         gameData.nextToPlay = gameData.players[gameData.indexNextToPlay];
                                         gameData.turn ++;
                                         gameData.eventIndex = -1; //to be put to 0 by common increase
-                                        socket.emit('next_turn', {playerUp: elt.data.nextToPlay, game_mode: false, lastPlay: elt.data.lastPlay});
-                                        socket.broadcast.emit('next_turn', {playerUp: elt.data.nextToPlay, game_mode: false, lastPlay: elt.data.lastPlay});
+                                        socket.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: false, lastPlay: elt.data.lastPlay});
+                                        socket.broadcast.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: false, lastPlay: elt.data.lastPlay});
                                         break;
                                     case 'redraw':
                                         socket.emit('redraw', {pseudo: elt.data.pseudo, hand: elt.data.hand});
@@ -202,6 +204,7 @@ fs.readFile(process.argv[4], 'utf8', function(err, data) {
                         }
 
                         socket.on('nextEvent', function() {
+                            console.log('next');
                             nextEvent();
                         });
 

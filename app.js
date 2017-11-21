@@ -128,6 +128,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
     var indexNextToPlay = Math.trunc(Math.random()*players.length);
     var cardsPerPlayer = [null,null,5,5,4,4][players.length];
     var gameData = {
+        replayMode: false,
         players: players,
         hands: {},
         deck: dealer(),
@@ -181,13 +182,14 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
         gameDataInit: JSON.parse(JSON.stringify(gameData)),
         turns: [[], []],
     }
+    recorded.gameDataInit.replayMode = true;
 
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Express Routes
     app.use(express.static('views'))
 
     .get('/game', function(req, res) {
-        res.render('game_screen.ejs', {cardsPerPlayer: cardsPerPlayer, address: ip + ':' + port});
+        res.render('game_screen.ejs', {replayMode: false, cardsPerPlayer: cardsPerPlayer, address: ip + ':' + port});
     })
 
     /* On redirige vers la todolist si la page demandée n'est pas trouvée */
@@ -231,7 +233,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                             gameData.nextToPlay = gameData.players[gameData.indexNextToPlay];
                             socket.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: game_mode, lastPlay: gameData.lastPlay});
                             socket.broadcast.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: game_mode, lastPlay: gameData.lastPlay});
-                            recorded.turns[gameData.turn].push({event: 'next_turn', data: {playerUp: gameData.nextToPlay, game_mode: game_mode, lastPlay: gameData.lastPlay}});
+                            recorded.turns[gameData.turn].push({event: 'next_turn', data: {playerUp: gameData.nextToPlay, lastPlay: gameData.lastPlay}});
                             if (gameData.remainingTurns > 0) {
                                 gameData.remainingTurns --;
                                 gameData.turn ++;
@@ -309,7 +311,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                                 // Send drawn card
                                 socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
                                 socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
-                                recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]}});
+                                recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: JSON.parse(JSON.stringify(gameData.hands[socket.pseudo]))}});
                                 // if last card drawn
                                 if (gameData.remainingCards == 0) {
                                     gameData.remainingTurns = gameData.players.length;
@@ -336,7 +338,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                                 recorded.turns[gameData.turn].push({event: 'discarded', data: card});
                                 socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
                                 socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
-                                recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]}});
+                                recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: JSON.parse(JSON.stringify(gameData.hands[socket.pseudo]))}});
                                 if (gameData.informations != 8) {
                                     gameData.informations ++;
                                     socket.emit('info', 'add');
@@ -381,7 +383,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                             gameData.hands[socket.pseudo][data.id].angle += data.angle;
                             socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
                             socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
-                            recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]}});
+                            recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: JSON.parse(JSON.stringify(gameData.hands[socket.pseudo]))}});
                         });
 
                         socket.on('reorderRequest', function(str) {
@@ -396,7 +398,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                                 socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
                                 socket.emit('notify', 'Reordered, changes applied.');
                                 socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
-                                recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]}});
+                                recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: JSON.parse(JSON.stringify(gameData.hands[socket.pseudo]))}});
                             } else {
                                 socket.emit('notify', 'Invalid order given, no change applied.');
                             }
