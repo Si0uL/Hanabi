@@ -166,6 +166,7 @@
                         </tr>
                     </table>
 
+                    <% if (!replayMode) { %>
                     <!-- Information form -->
                     <span class="title">Send an information:</span>
                     <table>
@@ -222,12 +223,18 @@
                             </td>
                         </tr>
                     </table>
-
+                    <% } else { %>
+                        <!-- Time Picker -->
+                        <span class="title">Navigate in the game:</span>
+                        <img class="previous-turn" href="javascript:void(0);" src="/img/play.svg" style="height:20px;"></a>
+                        <img class="previous-event" href="javascript:void(0);" src="/img/play.svg" style="height:20px;"></a>
+                        <span id="turn"> 1 </span>
+                        <img class="next-event" href="javascript:void(0);" src="/img/play.svg" style="height:20px;"></a>
+                        <img class="next-turn" href="javascript:void(0);" src="/img/play.svg" style="height:20px;"></a>
+                    <% } %>
                 </td>
             </tr>
         </table>
-
-        <img class="next-event" href="javascript:void(0);" src="/img/play.svg" style="height:20px;"></a>
 
         <script src="http://code.jquery.com/jquery-1.12.2.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
@@ -324,6 +331,8 @@
                         }
                     }
 
+                    if (gameData.replayMode) document.getElementById('turn').innerHTML = gameData.turn;
+
                     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     // Beginning of EventListeners
 
@@ -401,6 +410,9 @@
                             } else {
                                 document.getElementById('You').style.color = '#000000';
                             }
+                        } else {
+                            gameData.turn ++;
+                            document.getElementById('turn').innerHTML = gameData.turn;
                         }
                         if (data.game_mode) {
                             alert(data.lastPlay + '\n - \n' + data.playerUp + " is up!");
@@ -463,9 +475,20 @@
                         socket.emit('rotateRequest', {id: id, angle: -90});
                     });
 
+                    $('body').on('click', '.previous-turn', function() {
+                        socket.emit('previousTurn');
+                    });
+
+                    $('body').on('click', '.previous-event', function() {
+                        socket.emit('previousEvent');
+                    });
+
                     $('body').on('click', '.next-event', function() {
-                        console.log('next');
                         socket.emit('nextEvent');
+                    });
+
+                    $('body').on('click', '.next-turn', function() {
+                        socket.emit('nextTurn');
                     });
 
                 });

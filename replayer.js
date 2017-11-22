@@ -75,7 +75,8 @@ fs.readFile(process.argv[4], 'utf8', function(err, data) {
                         console.log(socket.pseudo,"logged in.");
 
                         var nextEvent = function() {
-                            if (gameData.turn > gameData.nextToPlay) {
+                            console.log(gameData.turn);
+                            if (gameData.turn == turns.length - 1) {
                                 socket.emit('notify', 'You already reached max. turn');
                             } else {
                                 var elt = turns[gameData.turn][gameData.eventIndex];
@@ -135,7 +136,7 @@ fs.readFile(process.argv[4], 'utf8', function(err, data) {
                             if (gameData.turn == 1 && gameData.eventIndex == 0) {
                                 socket.emit('notify', 'You already reached max. turn');
                             } else {
-                                var elt = turns[gameData.eventIndex];
+                                var elt = turns[gameData.turn][gameData.eventIndex];
                                 switch (elt.event) {
                                     case 'info':
                                         var aux;
@@ -204,7 +205,6 @@ fs.readFile(process.argv[4], 'utf8', function(err, data) {
                         }
 
                         socket.on('nextEvent', function() {
-                            console.log('next');
                             nextEvent();
                         });
 
@@ -213,16 +213,24 @@ fs.readFile(process.argv[4], 'utf8', function(err, data) {
                         });
 
                         socket.on('nextTurn', function() {
-                            var aux = gameData.turn;
-                            while (gameData.turn == aux) {
-                                nextEvent();
+                            if (gameData.turn == 1 && gameData.eventIndex == 0) {
+                                socket.emit('notify', 'You already reached max. turn');
+                            } else {
+                                var aux = gameData.turn;
+                                while (gameData.turn == aux) {
+                                    nextEvent();
+                                }
                             }
                         });
 
                         socket.on('previousTurn', function() {
-                            var aux = gameData.turn;
-                            while (gameData.turn == aux) {
-                                previousEvent();
+                            if (gameData.turn == 1 && gameData.eventIndex == 0) {
+                                socket.emit('notify', 'You already reached max. turn');
+                            } else {
+                                var aux = gameData.turn;
+                                while (gameData.turn == aux) {
+                                    previousEvent();
+                                }
                             }
                         });
 
