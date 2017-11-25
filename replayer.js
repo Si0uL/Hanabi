@@ -40,13 +40,13 @@ fs.readFile(process.argv[4], 'utf8', function(err, data) {
     // Express Routes
     app.use(express.static('views'))
 
-    .get('/game', function(req, res) {
+    .get('/replayer', function(req, res) {
         res.render('game_screen.ejs', {replayMode: true, cardsPerPlayer: recorded.gameDataInit.cardsPerPlayer, address: ip + ':' + port});
     })
 
     /* On redirige vers la todolist si la page demandée n'est pas trouvée */
     .use(function(req, res, next){
-        res.redirect('/game');
+        res.redirect('/replayer');
     });
 
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

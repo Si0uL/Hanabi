@@ -31,9 +31,23 @@
     </head>
 
     <body>
-        <h1 class="title" style="text-align:center; margin: 10px 0;">Online Hanabi</h1>
 
         <table>
+            <tr>
+                <td colspan="2" style="text-align:center;">
+                    <h1 class="title" style="margin: 10px 0;">Online Hanabi <% if (replayMode) { %> - Replayer <% } %> </h1>
+                    <% if (replayMode) { %>
+                        <!-- Time Picker -->
+                        <span class="title">
+                            <img class="previous-turn" href="javascript:void(0);" src="/img/previous-turn.svg" style="height:20px;"></a>
+                            <img class="previous-event" href="javascript:void(0);" src="/img/previous-event.svg" style="height:20px;"></a>
+                            &nbsp; Turn: <span id="turn"> 1 </span> &nbsp;
+                            <img class="next-event" href="javascript:void(0);" src="/img/next-event.svg" style="height:20px;"></a>
+                            <img class="next-turn" href="javascript:void(0);" src="/img/next-turn.svg" style="height:20px;"></a>
+                        </span>
+                    <% } %>
+                </td>
+            </tr>
             <tr>
                 <!-- Left Panel -->
                 <td style="padding-right:30px;">
@@ -223,14 +237,6 @@
                             </td>
                         </tr>
                     </table>
-                    <% } else { %>
-                        <!-- Time Picker -->
-                        <span class="title">Navigate in the game:</span>
-                        <img class="previous-turn" href="javascript:void(0);" src="/img/play.svg" style="height:20px;"></a>
-                        <img class="previous-event" href="javascript:void(0);" src="/img/play.svg" style="height:20px;"></a>
-                        <span id="turn"> 1 </span>
-                        <img class="next-event" href="javascript:void(0);" src="/img/play.svg" style="height:20px;"></a>
-                        <img class="next-turn" href="javascript:void(0);" src="/img/play.svg" style="height:20px;"></a>
                     <% } %>
                 </td>
             </tr>
