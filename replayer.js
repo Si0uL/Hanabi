@@ -213,7 +213,7 @@ fs.readFile(process.argv[4], 'utf8', function(err, data) {
                         });
 
                         socket.on('nextTurn', function() {
-                            if (gameData.turn == 1 && gameData.eventIndex == 0) {
+                            if (gameData.turn == turns.length - 1) {
                                 socket.emit('notify', 'You already reached max. turn');
                             } else {
                                 var aux = gameData.turn;
