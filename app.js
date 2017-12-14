@@ -98,8 +98,9 @@ var angles_array = function(hand) {
 // Beginning of main
 
 // Arguments reading
-if (!["-test", "-game"].includes(process.argv[2])) throw "Invalid second argument, use '-test' or '-game'";
-var game_mode = (process.argv[2] == "-game");
+if (!["test", "game", "game-hard"].includes(process.argv[2])) throw "Invalid second argument, use 'test', 'game' or 'game-hard'";
+var game_mode = (process.argv[2].includes("game"));
+var hardMode = (process.argv[2] == "game-hard");
 
 var ip = process.argv[3];
 var port = Number(process.argv[4]);
