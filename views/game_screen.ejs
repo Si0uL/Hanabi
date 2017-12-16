@@ -198,13 +198,15 @@
                                             <td>
                                                 <!-- Color selection -->
                                                 <table style="border-left: 1px solid black;">
-                                                    <% var fields = ['black', 'green', 'red', 'blue', 'multicolor', 'yellow']; %>
+                                                    <% var fields = ['black', 'green', 'red', 'blue', 'yellow', 'multicolor']; %>
                                                     <% for (var row=0; row<3; row++) { %>
                                                         <tr>
                                                             <% for (var col=0; col<2; col++) { %>
+                                                                <% if (!hardMode || (3*col+row != 5)) { %>
                                                                 <td>
                                                                     <input type="radio" name="info" value="<%= fields[3*col+row] %>"><span class="body"> <%= fields[3*col+row] %></span><br>
                                                                 </td>
+                                                                <% }; %>
                                                             <% }; %>
                                                         </tr>
                                                     <% }; %>
