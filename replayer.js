@@ -69,6 +69,7 @@ fs.readFile(process.argv[4], 'utf8', function(err, data) {
                         //!!!!!!!!!!!!!!!!!!!
                         //Etering The main
                         var to_send = JSON.parse(JSON.stringify(gameData));
+                        to_send.turn --;
 
                         socket.emit('init', to_send);
                         socket.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: false, lastPlay: gameData.lastPlay});
@@ -95,6 +96,7 @@ fs.readFile(process.argv[4], 'utf8', function(err, data) {
                                     case 'next_turn':
                                         gameData.indexNextToPlay = (gameData.indexNextToPlay + 1)%gameData.players.length;
                                         gameData.nextToPlay = gameData.players[gameData.indexNextToPlay];
+                                        gameData.lastPlay = elt.data.lastPlay;
                                         gameData.turn ++;
                                         gameData.eventIndex = -1; //to be put to 0 by common increase
                                         socket.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: false, lastPlay: elt.data.lastPlay});
@@ -134,7 +136,7 @@ fs.readFile(process.argv[4], 'utf8', function(err, data) {
 
                         var previousEvent = function () {
                             if (gameData.turn == 1 && gameData.eventIndex == 0) {
-                                socket.emit('notify', 'You already reached max. turn');
+                                socket.emit('notify', 'You already reached min. turn');
                             } else {
                                 var elt = turns[gameData.turn][gameData.eventIndex];
                                 switch (elt.event) {
@@ -225,7 +227,7 @@ fs.readFile(process.argv[4], 'utf8', function(err, data) {
 
                         socket.on('previousTurn', function() {
                             if (gameData.turn == 1 && gameData.eventIndex == 0) {
-                                socket.emit('notify', 'You already reached max. turn');
+                                socket.emit('notify', 'You already reached min. turn');
                             } else {
                                 var aux = gameData.turn;
                                 while (gameData.turn == aux) {
