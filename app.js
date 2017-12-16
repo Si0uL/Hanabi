@@ -39,7 +39,9 @@ var is_info_correct = function (info, hand) {
     var to_return = false;
     if (info.length == 1) {
         info = Number(info);
-    }
+    } else if (hardMode && info > 0 && etl.color == multicolor) { // if hardmode + color-type info + multicolor card
+        to_return == true;
+    };
     hand.forEach(function(elt) {
         if (elt.number == info || elt.color == info) {
             to_return = true
@@ -58,8 +60,11 @@ var eval_info = function (info, hand) {
     hand.forEach(function(elt, n) {
         if (elt.number == info || elt.color == info) {
             pos.push(n+1);
+        } else if (hardMode && !number && elt.color == 'multicolor') {
+            pos.push(n+1);
         }
     });
+    // sentence construction
     var sentence = "You have " + pos.length;
     if (number) {
         sentence += " number " + info;
