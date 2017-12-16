@@ -190,7 +190,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
     app.use(express.static('views'))
 
     .get('/game', function(req, res) {
-        res.render('game_screen.ejs', {replayMode: false, cardsPerPlayer: cardsPerPlayer, address: ip + ':' + port});
+        res.render('game_screen.ejs', {replayMode: false, cardsPerPlayer: cardsPerPlayer, address: ip + ':' + port, hardMode: hardMode});
     })
 
     /* On redirige vers la todolist si la page demandée n'est pas trouvée */
