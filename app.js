@@ -6,6 +6,18 @@ var app = express(),
     fs = require('fs'),
     ent = require('ent');
 
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// Beginning of main
+
+// Arguments reading
+if (!["test", "game", "game-hard"].includes(process.argv[2])) throw "Invalid second argument, use 'test', 'game' or 'game-hard'";
+var game_mode = (process.argv[2].includes("game"));
+var hardMode = (process.argv[2] == "game-hard");
+
+var ip = process.argv[3];
+var port = Number(process.argv[4]);
+
+// Functions definitions
 var dealer = function () {
     cards = [];
     ['black', 'red', 'blue', 'yellow', 'green'].forEach(function(color){
@@ -93,17 +105,6 @@ var angles_array = function(hand) {
     });
     return to_return
 }
-
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// Beginning of main
-
-// Arguments reading
-if (!["test", "game", "game-hard"].includes(process.argv[2])) throw "Invalid second argument, use 'test', 'game' or 'game-hard'";
-var game_mode = (process.argv[2].includes("game"));
-var hardMode = (process.argv[2] == "game-hard");
-
-var ip = process.argv[3];
-var port = Number(process.argv[4]);
 
 // Parse passwords.JSON
 var passwords;
