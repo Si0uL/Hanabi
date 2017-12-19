@@ -37,13 +37,15 @@ var dealer = function () {
 
 var is_info_correct = function (info, hand) {
     var to_return = false;
+    var is_color = true;
     if (info.length == 1) {
         info = Number(info);
-    } else if (hardMode && info > 0 && etl.color == multicolor) { // if hardmode + color-type info + multicolor card
-        to_return == true;
+        is_color = false;
     };
     hand.forEach(function(elt) {
         if (elt.number == info || elt.color == info) {
+            to_return = true
+        } else if (hardMode && is_color && elt.color == 'multicolor') { // if hardmode + color-type info + multicolor card
             to_return = true
         }
     });
