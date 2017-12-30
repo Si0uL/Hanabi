@@ -228,7 +228,11 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                         var to_send = JSON.parse(JSON.stringify(gameData));
                         to_send.your_cards_angles = [];
                         to_send.hands[socket.pseudo].forEach(function(elt) {
-                            to_send.your_cards_angles.push(-elt.angle);
+                            if (!elt) {
+                                to_send.your_cards_angles.push(-1);
+                            } else {
+                                to_send.your_cards_angles.push(-elt.angle);
+                            }
                         });
                         delete to_send.hands[socket.pseudo];
                         delete to_send.deck;
