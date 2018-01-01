@@ -161,6 +161,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
         indexNextToPlay: indexNextToPlay,
         cardsPerPlayer: cardsPerPlayer,
         lastPlay: "",
+        hardMode: hardMode,
     };
 
     // Cards deal
