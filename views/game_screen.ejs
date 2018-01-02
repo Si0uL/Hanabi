@@ -249,7 +249,7 @@
         <script>
 
             // Connexion à socket.io
-            var socket = io.connect('<%= address %>');
+            var socket = io.connect(prompt('Enter server Address:'));
 
             var pseudo = prompt('What is your name ?');
             socket.emit('nouveau_client', pseudo);

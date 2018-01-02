@@ -4,7 +4,7 @@
   "description": "Hanabi online",
   "main": "client.js",
   "scripts": {
-    "test": "node app.js test localhost 3333 Louis Kant Zensio",
+    "test": "node app.js test 3333 Louis Kant Zensio",
     "start": "node app.js"
   },
   "author": "Louis Mangin",

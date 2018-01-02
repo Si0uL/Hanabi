@@ -14,8 +14,7 @@ if (!["test", "game", "game-hard"].includes(process.argv[2])) throw "Invalid sec
 var game_mode = (process.argv[2].includes("game"));
 var hardMode = (process.argv[2] == "game-hard");
 
-var ip = process.argv[3];
-var port = Number(process.argv[4]);
+var port = Number(process.argv[3]);
 
 // Functions definitions
 var dealer = function () {
@@ -121,7 +120,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
     if (err) throw "Impossible to find your password JSON file!";
     passwords = JSON.parse(data);
 
-    var players = process.argv.splice(5);
+    var players = process.argv.splice(4);
     var aux = "";
     // Wrong number of players
     if (players.length < 2 || players.length > 5) throw "You must choose between 2 and 5 players";
@@ -199,7 +198,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
     app.use(express.static('views'))
 
     .get('/game', function(req, res) {
-        res.render('game_screen.ejs', {replayMode: false, cardsPerPlayer: cardsPerPlayer, address: ip + ':' + port, hardMode: hardMode});
+        res.render('game_screen.ejs', {replayMode: false, cardsPerPlayer: cardsPerPlayer, hardMode: hardMode});
     })
 
     /* On redirige vers la todolist si la page demandée n'est pas trouvée */

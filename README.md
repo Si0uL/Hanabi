@@ -13,7 +13,7 @@ Install dependencies using npm: `npm install`
 
 Create a `/data/password.json` file constaining the passwords associated to players (the Object's keys).
 
-`npm start [game/game-hard] ip port player1 player2 [player3, player4, player5]`
+`npm start [game/game-hard] port player1 player2 [player3, player4, player5]`
 
 Every turn, your game history will be saved in a file located in `/games/`
 
