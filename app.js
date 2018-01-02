@@ -162,6 +162,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
         lastPlay: "",
         hardMode: hardMode,
     };
+    var messages = [];
 
     // Cards deal
     players.forEach(function(name) {
@@ -415,6 +416,17 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                             } else {
                                 socket.emit('notify', 'Invalid order given, no change applied.');
                             }
+                        });
+
+                        socket.on('message', function(message) {
+                            str = ent.encode(message);
+                            socket.emit('message', {pseudo: socket.pseudo, message: message});
+                            socket.broadcast.emit('message', {pseudo: socket.pseudo, message: message});
+                            messages = [{pseudo: socket.pseudo, message: message}].concat(messages);
+                        });
+
+                        socket.on('message_history_request', function() {
+                            socket.emit('message_history', messages);
                         });
 
 
