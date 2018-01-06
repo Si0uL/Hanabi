@@ -3,7 +3,7 @@
     <div class="row">
 
         <!-- Hands -->
-        <div class="col-xs-5">
+        <div class="col-xs-4">
             <div class="panel grey-border" ng-repeat="player in gameData.colleagues">
                 <div class="panel-body">
                     <span>{{player}}:</span>
@@ -35,7 +35,7 @@
         </div>
 
         <!-- Board -->
-        <div class="col-xs-3">
+        <div class="col-xs-4">
 
             <div class="panel grey-border">
                 <div class="panel-heading grey-heading">
@@ -77,12 +77,26 @@
                                     <div>
                                         Infos:
                                     </div>
-                                    <div class="margin-left-small">
-                                        <i class="fa fa-info-circle icon-margin" style="color:#002DB3;" ng-repeat="index in [1, 2, 3, 4]" ng-if="index <= gameData.informations"></i>
-                                        <br>
-                                        <i class="fa fa-info-circle icon-margin" style="color:#002DB3;" ng-repeat="index in [5, 6, 7, 8]" ng-if="index <= gameData.informations"></i>
+                                    <div class="margin-left-small" style="max-width:95px;">
+                                        <i class="fa fa-info-circle icon-margin" style="color:#002DB3;" ng-repeat="index in [1, 2, 3, 4, 5, 6, 7, 8]" ng-if="index <= gameData.informations"></i>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel grey-border">
+                <div class="panel-heading grey-heading">
+                    Discarded
+                </div>
+                <div class="panel-body">
+                    <div ng-repeat="index1 in [0, 7, 14, 21, 28, 35, 42, 49]">
+                        <div class="flexrow" ng-if="index1 < gameData.discarded.length">
+                            <div class="card-container" ng-repeat="index2 in [0, 1, 2, 3, 4, 5, 6 ]">
+                                <img class="card-no-border" ng-src="img/blank.png" ng-if="index1 + index2 >= gameData.discarded.length">
+                                <img class="card2" ng-src="img/cards/{{gameData.discarded[index1+index2].color}}{{gameData.discarded[index1+index2].number}}.png" ng-if="index1 + index2 < gameData.discarded.length">
                             </div>
                         </div>
                     </div>
