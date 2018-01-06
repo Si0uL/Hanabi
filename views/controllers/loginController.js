@@ -5,7 +5,6 @@ angular
 function loginController( $scope, $state, userService ) {
 
     $scope.loginError = '';
-    $scope.logged = false;
 
     $scope.loginData = {
         server: '',
@@ -20,8 +19,17 @@ function loginController( $scope, $state, userService ) {
     };
 
     $scope.signIn = function() {
-        console.log($scope.loginData);
-        
+        $scope.loginError = '';
+        userService.connectionAttempt($scope.loginData).then(
+            function(success) {
+                console.log(success);
+                $state.go('main.game');
+                //$state.reload();
+            }, function(error) {
+                console.log(error);
+                $scope.loginError = error;
+                if (!$scope.$$phase) $scope.$digest();
+            });
     };
 
 }

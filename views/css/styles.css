@@ -26,6 +26,10 @@ body {
 	text-align: right;
 }
 
+.margin-top-small {
+    margin-top: 10px;
+}
+
 /*
 .panel-grey {
     border-color: #6A6A69;

@@ -27,26 +27,22 @@
                                     <span class="input-group-addon"><i class="glyphicon glyphicon-cloud-upload"></i></span>
                                     <input type="text" ng-model="loginData.server" class="form-control" placeholder="Server IP" ng-keypress="keyInput($event)">
                                 </div>
-                                <div class="input-group" style="margin-top:10px;">
+                                <div class="input-group margin-top-small">
                                     <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
                                     <input type="text" ng-model="loginData.username" class="form-control" placeholder="Pseudo" ng-keypress="keyInput($event)">
                                 </div>
-                                <div class="input-group" style="margin-top:10px;">
+                                <div class="input-group margin-top-small">
                                     <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
                                     <input type="password" ng-model="loginData.password" class="form-control" placeholder="Password" ng-keypress="keyInput($event)">
                                 </div>
                             </form>
 
-                            <br>
-
-                            <div class="center" style="color:red">
-                                {{loginError}}
-                            </div>
-
                         </div>
                     </div>
 
-                    <br>
+                    <div class="center margin-top-small" style="color:red">
+                        {{loginError}}
+                    </div>
 
                     <!-- Submit -->
                     <div class="margin-top-small right">
