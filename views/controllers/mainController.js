@@ -10,4 +10,6 @@ function mainController( $scope, $state, userService ) {
         $state.go('login');
     };
 
+    $scope.date = '' + new Date().getHours() + ':' + new Date().getMinutes();
+
 }

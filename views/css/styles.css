@@ -11,6 +11,48 @@ body {
     font-size: 70px;
 }
 
+.heading: {
+    font-family: 'Carter One', cursive;
+}
+
+.flexrow {
+	display: flex;
+	flex-flow: row nowrap;
+    justify-content: space-between;
+	align-items: center;
+}
+
+.card2 {
+    width: 100%;
+    margin: 0;
+    border: #DDDDDD solid 1px;
+}
+
+.card-blue {
+    width: 100%;
+    margin: 0;
+    border: #387EF5 solid 1px;
+}
+
+.card-no-border {
+    width: 100%;
+    margin: 0;
+}
+
+.card-container {
+    margin: 5px;
+}
+
+.grey-heading {
+    background-color: #6A6A69;
+    color: #FFFFFF;
+    font-weight: 900;
+}
+
+.grey-border {
+    border-color: #6A6A69;
+}
+
 .blue {
     background-color: #4CCEED;
 }

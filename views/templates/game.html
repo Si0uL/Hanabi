@@ -1,4 +1,99 @@
-
 <div class="container-fluid">
-    Game
+
+    <div class="row">
+
+        <!-- Hands -->
+        <div class="col-xs-5">
+            <div class="panel grey-border" ng-repeat="player in gameData.colleagues">
+                <div class="panel-body">
+                    <span>{{player}}:</span>
+                    <div class="flexrow">
+                        <div class="card-container" ng-repeat="card in gameData.hands[player]">
+                            <img class="card2" ng-src="img/blank.png" ng-if="!card">
+                            <img class="card2" ng-src="img/cards/{{card.color}}{{card.number}}.png" style="transform: rotate({{card.angle}}deg);">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <br>
+            <br>
+
+            <div class="panel grey-border">
+                <div class="panel-body">
+                    <span>Your Hand:</span>
+                    <div class="flexrow">
+                        <div class="card-container" ng-repeat="card in gameData.your_cards_angles">
+                            <img class="card2" ng-src="img/blank.png" ng-if="card.noCard">
+                            <img class="card2" ng-src="img/tree.png" style="transform: rotate({{card.angle}}deg);" ng-click="actionCard(card.index)" ng-if="!card.noCard && !highlighted[card.index]">
+                            <img class="card-blue" ng-src="img/tree.png" style="transform: rotate({{card.angle}}deg);" ng-click="actionCard(card.index)" ng-if="!card.noCard && highlighted[card.index]">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Board -->
+        <div class="col-xs-3">
+
+            <div class="panel grey-border">
+                <div class="panel-heading grey-heading">
+                    <span>Played:</span>
+                </div>
+                <div class="panel-body">
+                    <div class="flexrow">
+                        <div class="card-container" ng-repeat="color in ['black', 'red', 'blue']" style="text-align:center;">
+                            <img class="card2" ng-src="img/blank.png" ng-if="gameData.found[color] === 0" style="width:60%;">
+                            <img class="card2" ng-src="img/cards/{{color}}{{gameData.found[color]}}.png" ng-if="gameData.found[color] != 0" style="width:60%;">
+                        </div>
+                    </div>
+
+                    <div class="flexrow">
+                        <div class="card-container" ng-repeat="color in ['green', 'multicolor', 'yellow']" style="text-align:center;">
+                            <img class="card2" ng-src="img/blank.png" ng-if="gameData.found[color] === 0" style="width:60%;">
+                            <img class="card2" ng-src="img/cards/{{color}}{{gameData.found[color]}}.png" ng-if="gameData.found[color] != 0" style="width:60%;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel grey-border">
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-xs-4">
+                            Warnings:
+                        </div>
+                        <div class="col-xs-4">
+                            <i class="icon ion-close icon-margin" style="color:#ff0000;" ng-repeat="index in [1, 2, 3]" ng-if="index <= gameData.warnings"></i>
+                        </div>
+                        <div class="col-xs-3">
+                            Infos:
+                        </div>
+                        <div class="col-xs-5">
+                            <i class="icon ion-ios-information-outline icon-margin" style="color:#002DB3;" ng-repeat="index in [1, 2, 3, 4]" ng-if="index <= gameData.informations"></i>
+                            <br>
+                            <i class="icon ion-ios-information-outline icon-margin" style="color:#002DB3;" ng-repeat="index in [5, 6, 7, 8]" ng-if="index <= gameData.informations"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- Chat -->
+        <div class="col-xs-4">
+            <div class="panel grey-border">
+                <div class="panel-heading grey-heading">
+                    Chat
+                </div>
+                <div class="panel-body">
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
 </div>
