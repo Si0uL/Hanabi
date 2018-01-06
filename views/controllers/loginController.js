@@ -22,11 +22,8 @@ function loginController( $scope, $state, userService ) {
         $scope.loginError = '';
         userService.connectionAttempt($scope.loginData).then(
             function(success) {
-                console.log(success);
                 $state.go('main.game');
-                //$state.reload();
             }, function(error) {
-                console.log(error);
                 $scope.loginError = error;
                 if (!$scope.$$phase) $scope.$digest();
             });

@@ -48,7 +48,6 @@ angular.module('hanabi', ['ui.router', 'hanabi.controllers', 'hanabi.services' ]
     .state('main.replayer', {
         url: '/replayer',
         templateUrl: 'templates/replayer.html',
-        controller: 'replayerController',
     })
 
     // Default route.

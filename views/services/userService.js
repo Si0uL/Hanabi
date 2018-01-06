@@ -10,10 +10,10 @@ function userService($q) {
 
     return {
         getSocket: function() {
-            return {
-                socket: userSocket,
-                user: user
-            };
+            return userSocket;
+        },
+        getUser: function() {
+            return user;
         },
         getGame: function() {
             return game;
