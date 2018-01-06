@@ -22,6 +22,12 @@ body {
 	align-items: center;
 }
 
+.flexrow-right {
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: center;
+}
+
 .card2 {
     width: 100%;
     margin: 0;
@@ -41,6 +47,10 @@ body {
 
 .card-container {
     margin: 5px;
+}
+
+.icon-margin {
+    margin: 0 3px;
 }
 
 .grey-heading {
@@ -71,6 +81,10 @@ body {
 
 .margin-top-small {
     margin-top: 10px;
+}
+
+.margin-left-small {
+    margin-left: 10px;
 }
 
 /*

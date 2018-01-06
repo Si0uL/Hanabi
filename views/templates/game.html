@@ -43,16 +43,16 @@
                 </div>
                 <div class="panel-body">
                     <div class="flexrow">
-                        <div class="card-container" ng-repeat="color in ['black', 'red', 'blue']" style="text-align:center;">
-                            <img class="card2" ng-src="img/blank.png" ng-if="gameData.found[color] === 0" style="width:60%;">
-                            <img class="card2" ng-src="img/cards/{{color}}{{gameData.found[color]}}.png" ng-if="gameData.found[color] != 0" style="width:60%;">
+                        <div class="card-container" ng-repeat="color in ['black', 'red', 'blue']">
+                            <img class="card2" ng-src="img/blank.png" ng-if="gameData.found[color] === 0">
+                            <img class="card2" ng-src="img/cards/{{color}}{{gameData.found[color]}}.png" ng-if="gameData.found[color] != 0">
                         </div>
                     </div>
 
                     <div class="flexrow">
-                        <div class="card-container" ng-repeat="color in ['green', 'multicolor', 'yellow']" style="text-align:center;">
-                            <img class="card2" ng-src="img/blank.png" ng-if="gameData.found[color] === 0" style="width:60%;">
-                            <img class="card2" ng-src="img/cards/{{color}}{{gameData.found[color]}}.png" ng-if="gameData.found[color] != 0" style="width:60%;">
+                        <div class="card-container" ng-repeat="color in ['green', 'multicolor', 'yellow']">
+                            <img class="card2" ng-src="img/blank.png" ng-if="gameData.found[color] === 0">
+                            <img class="card2" ng-src="img/cards/{{color}}{{gameData.found[color]}}.png" ng-if="gameData.found[color] != 0">
                         </div>
                     </div>
                 </div>
@@ -61,19 +61,29 @@
             <div class="panel grey-border">
                 <div class="panel-body">
                     <div class="row">
-                        <div class="col-xs-4">
-                            Warnings:
-                        </div>
-                        <div class="col-xs-4">
-                            <i class="icon ion-close icon-margin" style="color:#ff0000;" ng-repeat="index in [1, 2, 3]" ng-if="index <= gameData.warnings"></i>
-                        </div>
-                        <div class="col-xs-3">
-                            Infos:
-                        </div>
-                        <div class="col-xs-5">
-                            <i class="icon ion-ios-information-outline icon-margin" style="color:#002DB3;" ng-repeat="index in [1, 2, 3, 4]" ng-if="index <= gameData.informations"></i>
-                            <br>
-                            <i class="icon ion-ios-information-outline icon-margin" style="color:#002DB3;" ng-repeat="index in [5, 6, 7, 8]" ng-if="index <= gameData.informations"></i>
+                        <div class="flexrow">
+                            <div class="col-xs-12 col-lg-6 no-padding">
+                                <div class="flexrow-right">
+                                    <div>
+                                        Warnings:
+                                    </div>
+                                    <div class="margin-left-small">
+                                        <i class="fa fa-times icon-margin" style="color:#ff0000;" ng-repeat="index in [1, 2, 3]" ng-if="index <= gameData.warnings"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-lg-6 no-padding">
+                                <div class="flexrow-right">
+                                    <div>
+                                        Infos:
+                                    </div>
+                                    <div class="margin-left-small">
+                                        <i class="fa fa-info-circle icon-margin" style="color:#002DB3;" ng-repeat="index in [1, 2, 3, 4]" ng-if="index <= gameData.informations"></i>
+                                        <br>
+                                        <i class="fa fa-info-circle icon-margin" style="color:#002DB3;" ng-repeat="index in [5, 6, 7, 8]" ng-if="index <= gameData.informations"></i>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
