@@ -1,0 +1,17 @@
+{
+  "name": "hanabi",
+  "homepage": "https://github.com/Si0uL/Hanabi",
+  "authors": [
+    "Louis Mangin <mangin.louis@gmail.com>"
+  ],
+  "description": "Hanabi Online",
+  "main": "",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

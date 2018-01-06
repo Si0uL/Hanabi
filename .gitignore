@@ -1,1 +1,4 @@
 /node_modules
+/views/bower_components
+/data
+/games
