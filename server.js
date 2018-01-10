@@ -196,16 +196,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
 
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Express Routes
-    app.use(express.static('views'))
-
-    .get('/game', function(req, res) {
-        res.render('game_screen.ejs', {replayMode: false, cardsPerPlayer: cardsPerPlayer, hardMode: hardMode});
-    })
-
-    /* On redirige vers la todolist si la page demandée n'est pas trouvée */
-    .use(function(req, res, next){
-        res.redirect('/game');
-    });
+    app.use(express.static('views'));
 
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // EventListeners
