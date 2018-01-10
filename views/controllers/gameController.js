@@ -39,11 +39,13 @@ function gameController( $scope, $state, userService ) {
 
     $scope.socket.on('played', function(color) {
         $scope.gameData.found[color] ++;
+        $scope.gameData.remainingCards --;
         if (!$scope.$$phase) $scope.$digest();
     });
 
     $scope.socket.on('discarded', function(card) {
         $scope.gameData.discarded.push(card);
+        $scope.gameData.remainingCards --;
         if (!$scope.$$phase) $scope.$digest();
     });
 
