@@ -22,7 +22,6 @@ function userService($q) {
             game = newGame;
         },
         connectionAttempt: function(loginData) {
-            console.log(loginData);
             var deferred = $q.defer();
             var socket = io.connect('http://' + loginData.server);
             var logginError = 'OK';
