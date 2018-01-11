@@ -23,10 +23,18 @@
                 <div class="panel-body">
                     <span>Your Hand:</span>
                     <div class="flexrow">
-                        <div class="card-container" ng-repeat="card in gameData.your_cards_angles">
-                            <img class="card2" ng-src="img/blank.png" ng-if="card.noCard">
-                            <img class="card2" ng-src="img/tree.png" style="transform: rotate({{card.angle}}deg);" ng-click="actionCard(card.index)" ng-if="!card.noCard && !highlighted[card.index]">
-                            <img class="card-blue" ng-src="img/tree.png" style="transform: rotate({{card.angle}}deg);" ng-click="actionCard(card.index)" ng-if="!card.noCard && highlighted[card.index]">
+                        <div class="card-container dropdown" ng-repeat="card in gameData.your_cards_angles">
+                            <img class="card2" data-toggle="dropdown" ng-src="img/blank.png" ng-if="card.noCard">
+                            <img class="card2" data-toggle="dropdown" ng-src="img/tree.png" style="transform: rotate({{card.angle}}deg);" ng-click="actionCard(card.index)" ng-if="!card.noCard && !highlighted[card.index]">
+                            <img class="card-blue" data-toggle="dropdown" ng-src="img/tree.png" style="transform: rotate({{card.angle}}deg);" ng-click="actionCard(card.index)" ng-if="!card.noCard && highlighted[card.index]">
+                            <ul class="dropdown-menu">
+                                <li class="dropdown-header">Action with your {{['1st', '2nd', '3rd', '4th', '5th'][$index]}} card:</li>
+                                <li class="divider"></li>
+                                <li><a href="javascript:void(0);" ng-click="play($index)"><span class="fa fa-gamepad" aria-hidden="true"></span> &nbsp; Play</a></li>
+                                <li><a href="javascript:void(0);" ng-click="delete($index)"><span class="fa fa-trash" aria-hidden="true"></span> &nbsp;&nbsp; Discard</a></li>
+                                <li><a href="javascript:void(0);" ng-click="rotateLeft($index)"><span class="fa fa-undo" aria-hidden="true"></span> &nbsp;&nbsp; Rotate Left</a></li>
+                                <li><a href="javascript:void(0);" ng-click="rotateRight($index)"><span class="fa fa-repeat" aria-hidden="true"></span> &nbsp;&nbsp; Rotate Right</a></li>
+                            </ul>
                         </div>
                     </div>
                 </div>

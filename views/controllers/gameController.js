@@ -7,7 +7,6 @@ function gameController( $scope, $state, userService ) {
     $scope.gameData = userService.getGame();
     $scope.socket = userService.getSocket();
     $scope.username = userService.getUser();
-    console.log($scope.gameData);
     $scope.highlighted = new Array($scope.gameData.cardsPerPlayer).fill(false);
 
     // Game event listeners
@@ -23,7 +22,7 @@ function gameController( $scope, $state, userService ) {
     $scope.socket.on('redraw_mine', function(data) {
         $scope.gameData.your_cards_angles = data;
         for (var i = 0; i < $scope.gameData.your_cards_angles.length; i++) {
-            $scope.gameData.your_cards_angles[i] = {angle: data[i], index: i, noCard: gameData.your_cards_angles[i] === -1};
+            $scope.gameData.your_cards_angles[i] = {angle: data[i], index: i, noCard: $scope.gameData.your_cards_angles[i] === -1};
         };
         userService.setGame($scope.gameData);
         // cancel potential highlighting
@@ -89,6 +88,21 @@ function gameController( $scope, $state, userService ) {
         alert('Game Finished:\n\n' + message);
     });
 
+    $scope.play = function(index) {
+        $scope.socket.emit('playRequest', String(index));
+    };
+
+    $scope.delete = function(index) {
+        $scope.socket.emit('discardRequest', String(index));
+    };
+
+    $scope.rotateLeft = function(index) {
+        $scope.socket.emit('rotateRequest', {id: index, angle: 90});
+    };
+
+    $scope.rotateRight = function(index) {
+        $scope.socket.emit('rotateRequest', {id: index, angle: -90});
+    };
 
     // Chat
     $scope.toSend = { text:'' };
