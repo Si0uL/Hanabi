@@ -8,6 +8,8 @@ function gameController( $scope, $state, userService ) {
     $scope.socket = userService.getSocket();
     $scope.username = userService.getUser();
     $scope.highlighted = new Array($scope.gameData.cardsPerPlayer).fill(false);
+    $scope.nextInfo = '';
+    $scope.nextInfoEvaluated = '';
 
     // Game event listeners
     $scope.highlighted = new Array($scope.gameData.cardsPerPlayer).fill(false);
@@ -88,6 +90,7 @@ function gameController( $scope, $state, userService ) {
         alert('Game Finished:\n\n' + message);
     });
 
+    // Action functions
     $scope.play = function(index) {
         $scope.socket.emit('playRequest', String(index));
     };
@@ -102,6 +105,60 @@ function gameController( $scope, $state, userService ) {
 
     $scope.rotateRight = function(index) {
         $scope.socket.emit('rotateRequest', {id: index, angle: -90});
+    };
+
+    $scope.reorder = function() {
+        var reo = prompt('Choose a new order (ex. 14325):');
+        if (reo != null) $scope.socket.emit('reorderRequest', reo);
+    };
+
+    $scope.evalNextInfo = function(information, player) {
+
+        // direct copy from the server
+        var eval_info = function (info, hand) {
+            var number = false;
+            if (info.length == 1) {
+                info = Number(info);
+                number = true;
+            }
+            var pos = [];
+            hand.forEach(function(elt, n) {
+                if (elt.number == info || elt.color == info) {
+                    pos.push(hand.length - n);
+                } else if ($scope.gameData.hardMode && !number && elt.color == 'multicolor') {
+                    pos.push(hand.length - n);
+                }
+            });
+            pos.reverse();
+            if (pos.length === 0) return '-';
+            // sentence construction
+            var sentence = "You have " + pos.length;
+            if (number) {
+                sentence += " number " + info;
+            } else {
+                sentence += " " + info;
+            }
+            if (pos.length > 1) {
+                sentence += " cards in position ";
+                for (var i = 0; i < pos.length-1; i++) {
+                    sentence += pos[i] + ", ";
+                }
+                sentence += "and " + pos[pos.length-1] + ".";
+            } else {
+                sentence += " card in position " + pos[0] + ".";
+            }
+            return sentence;
+        };
+
+        $scope.infoToSend = {player: player, info: information};
+        $scope.nextInfoEvaluated = eval_info(information, $scope.gameData.hands[player]);
+
+    };
+
+    $scope.inform = function() {
+        $scope.socket.emit('infoRequest', $scope.infoToSend);
+        $scope.nextInfo = '';
+        $scope.nextInfoEvaluated = '';
     };
 
     // Chat
