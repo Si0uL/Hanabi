@@ -181,7 +181,9 @@ function gameController( $scope, $state, userService ) {
     };
 
     $scope.socket.on('message', function(data) {
-        $scope.messages = [{pseudo: data.pseudo, message: data.message}].concat($scope.messages);
+        var to_concat = [{pseudo: data.pseudo, message: data.message}];
+        if (to_concat[0].pseudo === $scope.username) to_concat[0].pseudo = 'You';
+        $scope.messages = to_concat.concat($scope.messages);
         if (!$scope.$$phase) $scope.$digest();
     });
 
