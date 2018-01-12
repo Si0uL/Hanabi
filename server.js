@@ -10,9 +10,10 @@ var app = express(),
 // Beginning of main
 
 // Arguments reading
-if (!["test", "game", "game-hard"].includes(process.argv[2])) throw "Invalid second argument, use 'test', 'game' or 'game-hard'";
+if (!["test", "game", "game-hard", "game-easy"].includes(process.argv[2])) throw "Invalid second argument, use 'test', 'game' or 'game-hard'";
 var game_mode = (process.argv[2].includes("game"));
 var hardMode = (process.argv[2] == "game-hard");
+var easyMode = (process.argv[2] == "game-easy");
 
 var port = Number(process.argv[3]);
 
@@ -24,12 +25,15 @@ var dealer = function () {
             cards.push({number: number, color: color, angle: 0});
         });
     });
-    for (var i = 1; i < 6; i++) {
-        cards.push({number: i, color: 'multicolor', angle: 0});
+    if (!easyMode) {
+        for (var i = 1; i < 6; i++) {
+            cards.push({number: i, color: 'multicolor', angle: 0});
+        };
     };
     var cards_dealt = [];
-    for (var i = 0; i < 55; i++) {
-        cards_dealt.push(cards.splice(Math.trunc(Math.random()*(55-i)), 1)[0]);
+    var cards_number = cards.length;
+    for (var i = 0; i < cards_number; i++) {
+        cards_dealt.push(cards.splice(Math.trunc(Math.random()*(cards_number-i)), 1)[0]);
     }
     return cards_dealt;
 }
@@ -161,6 +165,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
         cardsPerPlayer: cardsPerPlayer,
         lastPlay: "",
         hardMode: hardMode,
+        easyMode: easyMode,
     };
     var messages = [];
 
