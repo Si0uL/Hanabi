@@ -116,6 +116,35 @@ var angles_array = function(hand) {
     return to_return
 }
 
+var expectedScore = function(found, deckAndHands, alreadyDiscarded, playersNumber, cardsPerPlayer, easyMode) {
+    var totalCards = 55;
+    if (easyMode) totalCards = 50;
+    var isInDeck = function(color, number) {
+        var _bool = false;
+        deckAndHands.forEach(function(elt) {
+            if (elt.color === color && elt.number === number) {
+                _bool = true;
+            };
+        });
+        return _bool;
+    };
+    var maxScore = 0;
+    for (var c in found) {
+        maxScore += found[c];
+        var _num = found[c] + 1;
+        while (isInDeck(c, _num)) {
+            maxScore ++;
+            _num ++;
+        };
+    };
+    var maxDiscard = totalCards - playersNumber*(cardsPerPlayer - 1) - maxScore - alreadyDiscarded;
+    if (maxDiscard < 0) {
+        maxScore += maxDiscard;
+        maxDiscard = 0;
+    };
+    return [maxScore, maxDiscard];
+};
+
 // Parse passwords.JSON
 var passwords;
 
@@ -159,13 +188,14 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
         remainingCards: 55,
         remainingTurns: -1,
         discarded: [],
-        discardedToDsiplay: [],
         nextToPlay: players[indexNextToPlay],
         indexNextToPlay: indexNextToPlay,
         cardsPerPlayer: cardsPerPlayer,
         lastPlay: "",
         hardMode: hardMode,
         easyMode: easyMode,
+        maxScore: undefined,
+        maxDiscard: undefined,
     };
     var messages = [];
 
@@ -178,6 +208,18 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
     });
 
     gameData.remainingCards = gameData.deck.length;
+
+    var updateExpected = function() {
+        var deckAndHands = gameData.deck;
+        for (var _p in gameData.hands) {
+            deckAndHands = deckAndHands.concat(gameData.hands[_p]);
+        };
+        var _expected = expectedScore(gameData.found, deckAndHands, gameData.discarded.length, gameData.players.length, gameData.cardsPerPlayer, gameData.easyMode);
+        gameData.maxScore = _expected[0];
+        gameData.maxDiscard = _expected[1];
+    };
+
+    updateExpected();
 
     console.log(gameData.hands);
     console.log(gameData);
@@ -304,8 +346,9 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                                     gameData.lastPlay = socket.pseudo + " atemps to play " + card.color + " " + card.number;
                                     console.log(gameData.lastPlay);
                                     gameData.discarded.push(card);
-                                    socket.emit('discarded', card);
-                                    socket.broadcast.emit('discarded', card);
+                                    updateExpected();
+                                    socket.emit('discarded', card, gameData.maxScore, gameData.maxDiscard);
+                                    socket.broadcast.emit('discarded', card, gameData.maxScore, gameData.maxDiscard);
                                     recorded.turns[gameData.turn].push({event: 'discarded', data: card});
                                     gameData.warnings ++;
                                     socket.emit('warning', {card: card, pseudo: socket.pseudo});
@@ -343,8 +386,9 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                                 gameData.lastPlay = socket.pseudo + " discards " + card.color + " " + card.number;
                                 console.log(gameData.lastPlay);
                                 gameData.discarded.push(card);
-                                socket.emit('discarded', card);
-                                socket.broadcast.emit('discarded', card);
+                                updateExpected();
+                                socket.emit('discarded', card, gameData.maxScore, gameData.maxDiscard);
+                                socket.broadcast.emit('discarded', card, gameData.maxScore, gameData.maxDiscard);
                                 recorded.turns[gameData.turn].push({event: 'discarded', data: card});
                                 socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
                                 socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});

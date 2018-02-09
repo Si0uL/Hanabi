@@ -44,8 +44,10 @@ function gameController( $scope, $state, userService ) {
         if (!$scope.$$phase) $scope.$digest();
     });
 
-    $scope.socket.on('discarded', function(card) {
+    $scope.socket.on('discarded', function(card, maxScore, maxDiscard) {
         $scope.gameData.discarded.push(card);
+        $scope.gameData.maxScore = maxScore;
+        $scope.gameData.maxDiscard = maxDiscard;
         $scope.gameData.remainingCards --;
         if (!$scope.$$phase) $scope.$digest();
     });
