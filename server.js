@@ -122,7 +122,7 @@ var expectedScore = function(found, deckAndHands, alreadyDiscarded, playersNumbe
     var isInDeck = function(color, number) {
         var _bool = false;
         deckAndHands.forEach(function(elt) {
-            if (elt.color === color && elt.number === number) {
+            if (elt && elt.color === color && elt.number === number) {
                 _bool = true;
             };
         });
