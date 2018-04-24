@@ -45,6 +45,20 @@ var dealer = function () {
     return cards_dealt;
 }
 
+//nb is the players number
+var isCool = function (deck, nb) {
+    if (deck[0].color === 'multicolor' && deck[0].number != 5) return false;
+    if (deck[1].color === 'multicolor' && deck[1].number < 5 - nb) return false;
+    if (deck[2].color === 'multicolor' && deck[2].number < 5 - nb - 1) return false;
+    if (nb === 2) {
+        //Avant dernière carte -> identique à dernière, seul cas: carte 2 à 2 joueurs
+        if (deck[1].color === deck[0].color && deck[1].number === 2 && deck[0].number === 2) return false;
+        //Second cas: trois cartes 1 à 2 joueurs
+        if (deck[2].color === deck[1].color && deck[1].color === deck[0].color && deck[2].number === 1 && deck[1].number === 1 && deck[0].number === 1) return false;
+    };
+    return true;
+}
+
 var hash = function (arr, nb) {
     var to_return = nb.toString();
     var color_nb = {
@@ -212,6 +226,9 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
         deck = unHash(givenHash, players.length);
     } else {
         deck = dealer();
+        while (!isCool(deck)) {
+            deck = dealer();
+        };
     };
 
     console.log("GAME START: " + new Date());
