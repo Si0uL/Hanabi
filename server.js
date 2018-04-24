@@ -17,6 +17,13 @@ var easyMode = (process.argv[2] == "game-easy");
 
 var port = Number(process.argv[3]);
 
+//Read hash if given
+var givenHash = undefined;
+if (process.argv[4] == "h") {
+    givenHash = process.argv[5];
+    process.argv.splice(4, 2); //remove the two uneeded arguments after reading it.
+};
+
 // Functions definitions
 var dealer = function () {
     cards = [];
@@ -49,7 +56,7 @@ var hash = function (arr, nb) {
         'multicolor': 5
     };
     arr.forEach(function(elt) {
-        to_return += String.fromCharCode(80 + color_nb[elt.color]*5 + elt.number);
+        to_return += String.fromCharCode(40 + color_nb[elt.color]*5 + elt.number);
     });
     return to_return;
 };
@@ -61,7 +68,7 @@ var unHash = function (str, nb) {
     var to_return = [];
     var nbToColor = ['black', 'red', 'blue', 'yellow', 'green', 'multicolor'];
     for (var i = 0; i < str.length; i++) {
-        var _c = nbToColor[Math.floor((str[i].charCodeAt(0) - 80)/5)];
+        var _c = nbToColor[Math.floor((str[i].charCodeAt(0) - 40)/5)];
         var _n = str[i].charCodeAt(0) % 5;
         to_return.push({color: _c, number: _n, angle: 0});
     }
@@ -199,6 +206,14 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
     };
     players = _aux;
 
+    //Deal or Reconstitute Deck
+    var deck;
+    if (givenHash) {
+        deck = unHash(givenHash, players.length);
+    } else {
+        deck = dealer();
+    };
+
     console.log("GAME START: " + new Date());
     console.log("Players: " + aux + "\n");
 
@@ -209,7 +224,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
         replayMode: false,
         players: players,
         hands: {},
-        deck: dealer(),
+        deck: deck,
         score: 0,
         found: {
             'black': 0,
