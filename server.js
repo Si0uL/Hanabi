@@ -38,8 +38,8 @@ var dealer = function () {
     return cards_dealt;
 }
 
-var hash = function (arr) {
-    var to_return = "";
+var hash = function (arr, nb) {
+    var to_return = nb.toString();
     var color_nb = {
         'black': 0,
         'red': 1,
@@ -54,7 +54,9 @@ var hash = function (arr) {
     return to_return;
 };
 
-var unHash = function (str) {
+var unHash = function (str, nb) {
+    if (nb != Number(str[0])) throw "Wrong Number of Players";
+    str = str.substr(1);
     if (str.length != 55) throw "Wrong Hash Length";
     var to_return = [];
     var nbToColor = ['black', 'red', 'blue', 'yellow', 'green', 'multicolor'];
@@ -225,9 +227,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
         maxScore: undefined,
         maxDiscard: undefined,
     };
-    gameData.deckHash = hash(gameData.deck);
-    console.log("\n\n\n ~~~~~~~~~~~~~~~~~~");
-    console.log(unHash(gameData.deckHash));
+    gameData.deckHash = hash(gameData.deck, gameData.players.length);
     var messages = [];
 
     // Cards deal
