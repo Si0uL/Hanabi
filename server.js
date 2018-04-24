@@ -38,6 +38,34 @@ var dealer = function () {
     return cards_dealt;
 }
 
+var hash = function (arr) {
+    var to_return = "";
+    var color_nb = {
+        'black': 0,
+        'red': 1,
+        'blue': 2,
+        'yellow': 3,
+        'green': 4,
+        'multicolor': 5
+    };
+    arr.forEach(function(elt) {
+        to_return += String.fromCharCode(80 + color_nb[elt.color]*5 + elt.number);
+    });
+    return to_return;
+};
+
+var unHash = function (str) {
+    if (str.length != 55) throw "Wrong Hash Length";
+    var to_return = [];
+    var nbToColor = ['black', 'red', 'blue', 'yellow', 'green', 'multicolor'];
+    for (var i = 0; i < str.length; i++) {
+        var _c = nbToColor[Math.floor((str[i].charCodeAt(0) - 80)/5)];
+        var _n = str[i].charCodeAt(0) % 5;
+        to_return.push({color: _c, number: _n, angle: 0});
+    }
+    return to_return;
+};
+
 var is_info_correct = function (info, hand) {
     var to_return = false;
     var is_color = true;
@@ -197,6 +225,9 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
         maxScore: undefined,
         maxDiscard: undefined,
     };
+    gameData.deckHash = hash(gameData.deck);
+    console.log("\n\n\n ~~~~~~~~~~~~~~~~~~");
+    console.log(unHash(gameData.deckHash));
     var messages = [];
 
     // Cards deal
