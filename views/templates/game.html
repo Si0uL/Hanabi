@@ -216,8 +216,8 @@
     </div>
 
     <div class="row center">
-        <span style="font-size: 12px; color: #6a6a69; align: center;">
-            {{gameData.deckHash}}
+        <span style="font-size: 12px; color: #6a6a69; align: center;" ng-if="!gameData.easyMode">
+            <span style="font-weight: bold;">Deck Hash: </span>{{gameData.deckHash}}
         </span>
     </div>
 

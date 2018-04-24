@@ -15,9 +15,9 @@ Create a `/data/password.json` file constaining the passwords associated to play
 
 `npm start [game-easy/game/game-hard] port player1 player2 [player3, player4, player5]`
 
-You can choose to play a specific game by adding its hash as follow:
+You can choose to play a specific game by adding its hash as follow (not compatible without multicolor cards):
 
-`npm start [game-easy/game/game-hard] port [h] [HASHNUMBER] player1 player2 [player3, player4, player5]`
+`npm start [game/game-hard] port h HASHNUMBER player1 player2 [player3, player4, player5]`
 
 Every turn, your game history will be saved in a file located in `/games/`
 
