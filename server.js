@@ -192,11 +192,18 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
         aux += elt + " ";
     });
 
+    //Shuffle Players Array
+    var _aux = [];
+    for (var i = players.length; i > 0; i--) {
+        _aux.push(players.splice(Math.floor(Math.random()*i), 1)[0]);
+    };
+    players = _aux;
+
     console.log("GAME START: " + new Date());
     console.log("Players: " + aux + "\n");
 
     // Init of game variables
-    var indexNextToPlay = Math.trunc(Math.random()*players.length);
+    var indexNextToPlay = 0;
     var cardsPerPlayer = [null,null,5,5,4,4][players.length];
     var gameData = {
         replayMode: false,
