@@ -1,0 +1,59 @@
+<!-- Navbar -->
+<nav class="navbar navbar-default">
+    <div class="container-fluid navbar-container">
+        <div class="row">
+            <div class="col-xs-12 center">
+                <!-- Insert Logo Here -->
+                <span class="title">Hanabi</span>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Form -->
+<div class="container-fluid">
+
+    <div class="row">
+
+        <div class="col-xs-12 col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3">
+            <div class="panel blue-border">
+                <div class="panel-heading blue">
+                    <span>Launch a game:</span>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-xs-10">
+
+                            <!-- Teammates selection -->
+                            <span>Select Teammates: (use Ctrl)</span>
+                            <select multiple class="form-control" ng-model="selectedPlayers">
+                                <option ng-repeat="player in playersList">{{player}}</option>
+                            </select>
+
+                            <br>
+
+                            <!-- Game Mode -->
+                            <span>Select Game Mode:</span>
+                            <br>
+                            <button class="btn btn-info" ng-class="{'active': gameMode === 'easy'}" ng-click="goEasy()">Easy</button>
+                            <button class="btn btn-info" ng-class="{'active': gameMode === 'normal'}" ng-click="goNormal()">Normal</button>
+                            <button class="btn btn-info" ng-class="{'active': gameMode === 'hard'}" ng-click="goHard()">Hard</button>
+
+                            <br>
+                        </div>
+
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="col-xs-2 col-xs-offset-10">
+                        <button type="button" class="btn btn-default" ng-click="launch()">Play</button>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

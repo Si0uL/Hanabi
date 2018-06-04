@@ -37,6 +37,13 @@ angular.module('hanabi', ['ui.router', 'hanabi.controllers', 'hanabi.services' ]
         */
     })
 
+    // Main.board route.
+    .state('board', {
+        url: '/board',
+        templateUrl: 'templates/board.html',
+        controller: 'boardController',
+    })
+
     // Main.game route.
     .state('main.game', {
         url: '/game',
