@@ -24,6 +24,12 @@ if (process.argv[4] == "h") {
     process.argv.splice(4, 2); //remove the two uneeded arguments after reading it.
 };
 
+// Read the players
+var players = process.argv.splice(4);
+// Wrong number of players
+if (players.length < 2 || players.length > 5) throw "You must choose between 2 and 5 players";
+
+
 // Functions definitions
 var dealer = function () {
     cards = [];
@@ -204,10 +210,8 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
     if (err) throw "Impossible to find your password JSON file!";
     passwords = JSON.parse(data);
 
-    var players = process.argv.splice(4);
+    // Check all players' password
     var aux = "";
-    // Wrong number of players
-    if (players.length < 2 || players.length > 5) throw "You must choose between 2 and 5 players";
     players.forEach(function(elt) {
         if (!(elt in passwords)) throw "No registered password for " + elt;
         aux += elt + " ";
@@ -310,10 +314,6 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
         turns: [[], []],
     }
     recorded.gameDataInit.replayMode = true;
-
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // Express Routes
-    app.use(express.static('views'));
 
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // EventListeners
@@ -555,5 +555,9 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
     });
 
 }); // endOf file reader
+
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// Express Routes
+app.use(express.static('views'));
 
 server.listen(port);
