@@ -9,6 +9,25 @@ function userService($q) {
     var game = undefined;
     var availablePlayers = undefined;
 
+    var initGame = function(gameData) {
+        for (var p in gameData.hands) {
+            gameData.hands[p].reverse();
+        };
+        gameData.colleagues = [];
+        gameData.players.forEach(function(elt,n) {
+            if (elt === user) {
+                for (var i = 0; i < gameData.players.length - 1; i++) {
+                    gameData.colleagues[i] = gameData.players[(n + i + 1) % gameData.players.length];
+                };
+            };
+        });
+        for (var i = 0; i < gameData.your_cards_angles.length; i++) {
+            gameData.your_cards_angles[i] = {angle: gameData.your_cards_angles[i], index: i, noCard: gameData.your_cards_angles[i] === -1};
+        };
+
+        game = gameData;
+    };
+
     return {
         getSocket: function() {
             return userSocket;
@@ -43,7 +62,16 @@ function userService($q) {
                 userSocket = socket;
                 user = loginData.username;
 
-                deferred.resolve(inGame);
+                // Wait for the game data to arrive
+                if (inGame) {
+                    socket.once('init', function(gameData) {
+                        initGame(gameData);
+                        deferred.resolve(inGame);
+                    });
+                // Go immediatly to the board
+                } else {
+                    deferred.resolve(inGame);
+                };
             });
 
             return deferred.promise;
@@ -56,23 +84,7 @@ function userService($q) {
             setTimeout(function(){ deferred.reject('Timeout on Request'); }, 10000);
 
             userSocket.once('init', function(gameData) {
-                for (var p in gameData.hands) {
-                    gameData.hands[p].reverse();
-                };
-                gameData.colleagues = [];
-                gameData.players.forEach(function(elt,n) {
-                    if (elt === user) {
-                        for (var i = 0; i < gameData.players.length - 1; i++) {
-                            gameData.colleagues[i] = gameData.players[(n + i + 1) % gameData.players.length];
-                        };
-                    };
-                });
-                for (var i = 0; i < gameData.your_cards_angles.length; i++) {
-                    gameData.your_cards_angles[i] = {angle: gameData.your_cards_angles[i], index: i, noCard: gameData.your_cards_angles[i] === -1};
-                };
-
-                game = gameData;
-
+                initGame(gameData);
                 deferred.resolve('ok')
             });
 

@@ -47,6 +47,9 @@ players.forEach(function(elt) {
     inGame[elt] = false;
 });
 
+// Containing all in progress games
+var gamesCache = [];
+
 // Functions definitions
 var getAvailables = function(myName) {
     var to_return = [];
@@ -235,97 +238,109 @@ var expectedScore = function(found, deckAndHands, alreadyDiscarded, playersNumbe
     return [maxScore, maxDiscard];
 };
 
-var launch_game = function(players, hardMode, easyMode, givenHash, socket) {
+var launch_game = function(socket, useCache, players, hardMode, easyMode, givenHash) {
 
-    //Shuffle Players Array
-    var _aux = [];
-    for (var i = players.length; i > 0; i--) {
-        _aux.push(players.splice(Math.floor(Math.random()*i), 1)[0]);
-    };
-    players = _aux;
+    var gameData;
+    var cacheIndex;
 
-    //Deal or Reconstitute Deck
-    var deck;
-    if (givenHash) {
-        deck = unHash(givenHash, players.length);
-    } else {
-        deck = dealer();
-        while (!isCool(deck)) {
+    // Game being initialized, must init all variables
+    if (!useCache) {
+        //Shuffle Players Array
+        var _aux = [];
+        for (var i = players.length; i > 0; i--) {
+            _aux.push(players.splice(Math.floor(Math.random()*i), 1)[0]);
+        };
+        players = _aux;
+
+        //Deal or Reconstitute Deck
+        var deck;
+        if (givenHash) {
+            deck = unHash(givenHash, players.length);
+        } else {
             deck = dealer();
+            while (!isCool(deck)) {
+                deck = dealer();
+            };
         };
+
+        // Init of game variables
+        gameData = {
+            replayMode: false,
+            players: players,
+            hands: {},
+            deck: deck,
+            score: 0,
+            found: {
+                'black': 0,
+                'red': 0,
+                'yellow': 0,
+                'green': 0,
+                'blue': 0,
+                'multicolor': 0,
+            },
+            informations: 8,
+            warnings: 0,
+            turn: 1,
+            remainingCards: 55,
+            remainingTurns: -1,
+            discarded: [],
+            nextToPlay: players[0],
+            indexNextToPlay: 0,
+            cardsPerPlayer: [null,null,5,5,4,4][players.length],
+            lastPlay: "",
+            hardMode: hardMode,
+            easyMode: easyMode,
+            maxScore: undefined,
+            maxDiscard: undefined,
+            deckHash: hash(deck, players.length),
+        };
+        var messages = [];
+
+        // Cards deal
+        players.forEach(function(name) {
+            gameData.hands[name] = [];
+            for (var i = 0; i < gameData.cardsPerPlayer; i++) {
+                gameData.hands[name].push(gameData.deck.pop());
+            };
+        });
+
+        gameData.remainingCards = gameData.deck.length;
+
+        var updateExpected = function() {
+            var deckAndHands = gameData.deck;
+            for (var _p in gameData.hands) {
+                deckAndHands = deckAndHands.concat(gameData.hands[_p]);
+            };
+            var _expected = expectedScore(gameData.found, deckAndHands, gameData.discarded.length, gameData.players.length, gameData.cardsPerPlayer, gameData.easyMode);
+            gameData.maxScore = _expected[0];
+            gameData.maxDiscard = _expected[1];
+        };
+
+        updateExpected();
+
+        // Json to be saved at the end:
+        var _d = new Date();
+        var jsonName = "games/" + _d.getUTCFullYear() + (_d.getUTCMonth() + 1) + _d.getUTCDate() + _d.getUTCHours() + _d.getUTCMinutes();
+        players.forEach(function (p) {
+            jsonName += "_" + p;
+        });
+        jsonName += ".json";
+        gameData.jsonName = jsonName;
+
+        // Save in cache
+        cacheIndex = gamesCache.length;
+        gamesCache.push(gameData);
+
+    // Game already in progress, must load the game from cache
+    } else {
+        gamesCache.forEach(function(elt, n) {
+            if (elt.players.includes(socket.pseudo)){
+                gameData = elt;
+                cacheIndex = n;
+            };
+        });
     };
 
-    console.log("GAME START: " + new Date());
-    console.log("Players: " + aux + "\n");
-
-    // Init of game variables
-    var gameData = {
-        replayMode: false,
-        players: players,
-        hands: {},
-        deck: deck,
-        score: 0,
-        found: {
-            'black': 0,
-            'red': 0,
-            'yellow': 0,
-            'green': 0,
-            'blue': 0,
-            'multicolor': 0,
-        },
-        informations: 8,
-        warnings: 0,
-        turn: 1,
-        remainingCards: 55,
-        remainingTurns: -1,
-        discarded: [],
-        nextToPlay: players[0],
-        indexNextToPlay: 0,
-        cardsPerPlayer: [null,null,5,5,4,4][players.length],
-        lastPlay: "",
-        hardMode: hardMode,
-        easyMode: easyMode,
-        maxScore: undefined,
-        maxDiscard: undefined,
-        deckHash: hash(gameData.deck, gameData.players.length),
-    };
-    var messages = [];
-
-    // Cards deal
-    players.forEach(function(name) {
-        gameData.hands[name] = [];
-        for (var i = 0; i < cardsPerPlayer; i++) {
-            gameData.hands[name].push(gameData.deck.pop());
-        };
-    });
-
-    gameData.remainingCards = gameData.deck.length;
-
-    var updateExpected = function() {
-        var deckAndHands = gameData.deck;
-        for (var _p in gameData.hands) {
-            deckAndHands = deckAndHands.concat(gameData.hands[_p]);
-        };
-        var _expected = expectedScore(gameData.found, deckAndHands, gameData.discarded.length, gameData.players.length, gameData.cardsPerPlayer, gameData.easyMode);
-        gameData.maxScore = _expected[0];
-        gameData.maxDiscard = _expected[1];
-    };
-
-    updateExpected();
-
-    console.log(gameData.hands);
-    console.log(gameData);
-
-    console.log("\nTURN " + gameData.turn + ": " + new Date());
-    console.log(gameData.nextToPlay + " is playing:");
-
-    // Json to be saved at the end:
-    var _d = new Date();
-    var jsonName = "games/" + _d.getUTCFullYear() + (_d.getUTCMonth() + 1) + _d.getUTCDate() + _d.getUTCHours() + _d.getUTCMinutes();
-    players.forEach(function (p) {
-        jsonName += "_" + p;
-    });
-    jsonName += ".json";
     var recorded = {
         gameDataInit: JSON.parse(JSON.stringify(gameData)),
         turns: [[], []],
@@ -347,7 +362,6 @@ var launch_game = function(players, hardMode, easyMode, givenHash, socket) {
 
     // Beginning of transmission
     socket.emit('init', to_send);
-    console.log(socket.pseudo,"logged in.");
 
     var next_turn = function() {
         gameData.indexNextToPlay = (gameData.indexNextToPlay + 1)%gameData.players.length;
@@ -358,22 +372,17 @@ var launch_game = function(players, hardMode, easyMode, givenHash, socket) {
         if (gameData.remainingTurns > 0) {
             gameData.remainingTurns --;
             gameData.turn ++;
-            console.log("\nTURN " + gameData.turn + ": " + new Date());
-            console.log(gameData.nextToPlay + " is playing:");
             recorded.turns.push([]);
-            fs.writeFileSync(jsonName, JSON.stringify(recorded));
+            fs.writeFileSync(gameData.jsonName, JSON.stringify(recorded));
         } else if (gameData.remainingTurns == 0) {
             socket.emit('game_end', "Game finished: You scored " + gameData.score);
             socket.broadcast.emit('game_end', "Game finished: You scored " + gameData.score);
-            console.log("GAME FINISHED, SCORE: " + gameData.score);
             recorded.turns[gameData.turn].push({event: 'game_finished', data: "Game finished: You scored " + gameData.score});
-            fs.writeFileSync(jsonName, JSON.stringify(recorded));
+            fs.writeFileSync(gameData.jsonName, JSON.stringify(recorded));
         } else {
             gameData.turn ++;
-            console.log("\nTURN " + gameData.turn + ": " + new Date());
-            console.log(gameData.nextToPlay + " is playing:");
             recorded.turns.push([]);
-            fs.writeFileSync(jsonName, JSON.stringify(recorded));
+            fs.writeFileSync(gameData.jsonName, JSON.stringify(recorded));
         }
     }
 
@@ -386,13 +395,10 @@ var launch_game = function(players, hardMode, easyMode, givenHash, socket) {
             var drawnCard = gameData.deck.pop();
             gameData.remainingCards --;
             gameData.hands[socket.pseudo].push(drawnCard);
-            console.log(socket.pseudo, "plays",card);
             // Correct case
             if (card.number == (gameData.found[card.color]+1)) {
                 gameData.score ++;
-                console.log("Correct");
                 gameData.lastPlay = socket.pseudo + " plays " + card.color + " " + card.number;
-                console.log(gameData.lastPlay);
                 gameData.found[card.color] ++;
                 socket.emit('played', card.color);
                 socket.broadcast.emit('played', card.color);
@@ -407,13 +413,10 @@ var launch_game = function(players, hardMode, easyMode, givenHash, socket) {
                     socket.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
                     socket.broadcast.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
                     recorded.turns[gameData.turn].push({event: 'game_end', data: "Game finished: Congratulations, you scored 30 !!"});
-                    console.log("GAME FINISHED, SCORE: 30");
                 }
             // Incorrect case
             } else {
-                console.log("Incorrect,", gameData.warnings+1, "warnings");
                 gameData.lastPlay = socket.pseudo + " atemps to play " + card.color + " " + card.number;
-                console.log(gameData.lastPlay);
                 gameData.discarded.push(card);
                 updateExpected();
                 socket.emit('discarded', card, gameData.maxScore, gameData.maxDiscard);
@@ -426,7 +429,6 @@ var launch_game = function(players, hardMode, easyMode, givenHash, socket) {
                 if (gameData.warnings == 3) {
                     socket.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
                     socket.broadcast.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
-                    console.log("GAME FINISHED, SCORE: 0");
                     recorded.turns[gameData.turn].push({event: 'game_end', data: "GAME FINISHED, SCORE: 0"});
                 }
             }
@@ -453,7 +455,6 @@ var launch_game = function(players, hardMode, easyMode, givenHash, socket) {
             gameData.remainingCards --;
             gameData.hands[socket.pseudo].push(drawnCard);
             gameData.lastPlay = socket.pseudo + " discards " + card.color + " " + card.number;
-            console.log(gameData.lastPlay);
             gameData.discarded.push(card);
             updateExpected();
             socket.emit('discarded', card, gameData.maxScore, gameData.maxDiscard);
@@ -486,7 +487,6 @@ var launch_game = function(players, hardMode, easyMode, givenHash, socket) {
                 if (is_info_correct(data.info, gameData.hands[data.player])) {
                     var sentence = eval_info(data.info, gameData.hands[data.player]);
                     gameData.lastPlay = socket.pseudo + " says " + data.player + ": " + sentence;
-                    console.log(gameData.lastPlay);
                     gameData.informations --;
                     socket.emit('info', 'remove');
                     socket.broadcast.emit('info', 'remove');
@@ -502,7 +502,6 @@ var launch_game = function(players, hardMode, easyMode, givenHash, socket) {
     });
 
     socket.on('rotateRequest', function(data) {
-        console.log(socket.pseudo,"wants to rotate his card nb",data.id,"by an angle of",data.angle,"degrees");
         gameData.hands[socket.pseudo][data.id].angle += data.angle;
         socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
         socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
@@ -517,7 +516,6 @@ var launch_game = function(players, hardMode, easyMode, givenHash, socket) {
                 new_hand.push(gameData.hands[socket.pseudo][Number(str[i])-1]);
             }
             gameData.hands[socket.pseudo] = new_hand;
-            console.log(socket.pseudo,"reorders his hand. New hand:",new_hand);
             socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
             socket.emit('notify', 'Reordered, changes applied.');
             socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
@@ -559,13 +557,16 @@ io.sockets.on('connection', function (socket) {
             socket.emit('connected', inGame[pseudo], getAvailables(pseudo));
             socket.pseudo = pseudo;
 
+            // lauch immediatly using cached gameData
+            if (inGame[pseudo]) {launch_game(socket, true)};
+
             socket.on('launch_game', function(players, mode) {
                 var hardMode = mode === 'hard';
                 var easyMode = mode === 'easy';
                 // TODO: improve that by getting optional hash in board
                 var givenHash = false;
                 changeStatus(players, true);
-                launch_game(players, hardMode, easyMode, givenHash, socket);
+                launch_game(socket, false, players, hardMode, easyMode, givenHash);
             });
 
         };
