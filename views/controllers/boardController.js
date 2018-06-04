@@ -24,6 +24,17 @@ function boardController( $scope, $state, userService ) {
         $scope.gameMode = 'hard';
     };
 
+    $scope.socket.once('invitation', function(players) {
+        if (players.includes($scope.username)) {
+            userService.launchGame(true).then(
+                function(success) {
+                    $state.go('main.game');
+                }, function(error) {
+                    $scope.alert = error;
+                    if (!$scope.$$phase) $scope.$digest();
+                });
+        };
+    });
 
     $scope.launch = function() {
         if ($scope.selectedPlayers.length < 1 || $scope.selectedPlayers.length > 4) {
@@ -31,7 +42,7 @@ function boardController( $scope, $state, userService ) {
             if (!$scope.$$phase) $scope.$digest();
         } else {
             $scope.selectedPlayers.push($scope.username);
-            userService.launchGame($scope.selectedPlayers, $scope.gameMode).then(
+            userService.launchGame(false, $scope.selectedPlayers, $scope.gameMode).then(
                 function(success) {
                     $state.go('main.game');
                 }, function(error) {

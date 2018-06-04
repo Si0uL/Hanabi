@@ -331,6 +331,11 @@ var launch_game = function(socket, useCache, players, hardMode, easyMode, givenH
         cacheIndex = gamesCache.length;
         gamesCache.push(gameData);
 
+        // launch invitations
+        var invited = JSON.parse(JSON.stringify(gameData.players));
+        invited.splice(invited.indexOf(socket.pseudo), 1);
+        socket.broadcast.emit('invitation', invited);
+
     // Game already in progress, must load the game from cache
     } else {
         gamesCache.forEach(function(elt, n) {
@@ -560,13 +565,17 @@ io.sockets.on('connection', function (socket) {
             // lauch immediatly using cached gameData
             if (inGame[pseudo]) {launch_game(socket, true)};
 
-            socket.on('launch_game', function(players, mode) {
-                var hardMode = mode === 'hard';
-                var easyMode = mode === 'easy';
-                // TODO: improve that by getting optional hash in board
-                var givenHash = false;
-                changeStatus(players, true);
-                launch_game(socket, false, players, hardMode, easyMode, givenHash);
+            socket.on('launch_game', function(cached, players, mode) {
+                if (cached) {
+                    launch_game(socket, true);
+                } else {
+                    var hardMode = mode === 'hard';
+                    var easyMode = mode === 'easy';
+                    // TODO: improve that by getting optional hash in board
+                    var givenHash = false;
+                    changeStatus(players, true);
+                    launch_game(socket, false, players, hardMode, easyMode, givenHash);
+                };
             });
 
         };
