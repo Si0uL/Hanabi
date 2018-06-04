@@ -48,6 +48,16 @@ players.forEach(function(elt) {
 });
 
 // Functions definitions
+var getAvailables = function(myName) {
+    var to_return = [];
+    for (var key in inGame) {
+        if (key != myName && !inGame[key]) {
+            to_return.push(key);
+        };
+    };
+    return to_return;
+};
+
 var dealer = function () {
     cards = [];
     ['black', 'red', 'blue', 'yellow', 'green'].forEach(function(color){
@@ -546,7 +556,7 @@ io.sockets.on('connection', function (socket) {
             console.log('Connection Refused');
             socket.emit('reject_login');
         } else {
-            socket.emit('connected', inGame[pseudo]);
+            socket.emit('connected', inGame[pseudo], getAvailables(pseudo));
             socket.pseudo = pseudo;
 
         };

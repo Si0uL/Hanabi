@@ -8,19 +8,7 @@ function boardController( $scope, $state, userService ) {
     $scope.alert = undefined;
     $scope.socket = userService.getSocket();
     $scope.username = userService.getUser();
-
-    $scope.playersList = [
-        'Louis',
-        'Kant',
-        'Zensio',
-        'kzjdgb',
-        'iushv',
-        'osudhv0',
-        'vj',
-        'sdouvh',
-        'soduvh',
-        'sycv',
-    ];
+    $scope.playersList = userService.getAvailablePlayers();
 
     $scope.gameMode = 'normal';
 

@@ -7,6 +7,7 @@ function userService($q) {
     var userSocket = undefined;
     var user = undefined;
     var game = undefined;
+    var availablePlayers = undefined;
 
     return {
         getSocket: function() {
@@ -21,6 +22,9 @@ function userService($q) {
         setGame: function(newGame) {
             game = newGame;
         },
+        getAvailablePlayers: function() {
+            return availablePlayers;
+        },
         connectionAttempt: function(loginData) {
             var deferred = $q.defer();
             var socket = io.connect('http://' + loginData.server);
@@ -33,8 +37,9 @@ function userService($q) {
                 deferred.reject('Wrong username or password');
             });
 
-            socket.once('connected', function(inGame) {
+            socket.once('connected', function(inGame, _availablePlayers) {
 
+                availablePlayers = _availablePlayers;
                 userSocket = socket;
                 user = loginData.username;
 
