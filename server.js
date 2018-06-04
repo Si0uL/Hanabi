@@ -29,6 +29,17 @@ var players = process.argv.splice(4);
 // Wrong number of players
 if (players.length < 2 || players.length > 5) throw "You must choose between 2 and 5 players";
 
+// Parse passwords.json
+var passwords;
+var data = fs.readFileSync('./data/passwords.json', 'utf8');
+passwords = JSON.parse(data);
+
+// Check all players' password
+var aux = "";
+players.forEach(function(elt) {
+    if (!(elt in passwords)) throw "No registered password for " + elt;
+    aux += elt + " ";
+});
 
 // Functions definitions
 var dealer = function () {
@@ -202,20 +213,7 @@ var expectedScore = function(found, deckAndHands, alreadyDiscarded, playersNumbe
     return [maxScore, maxDiscard];
 };
 
-// Parse passwords.JSON
-var passwords;
-
-fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
-
-    if (err) throw "Impossible to find your password JSON file!";
-    passwords = JSON.parse(data);
-
-    // Check all players' password
-    var aux = "";
-    players.forEach(function(elt) {
-        if (!(elt in passwords)) throw "No registered password for " + elt;
-        aux += elt + " ";
-    });
+var play_game = function(players, hardMode, easyMode, givenHash) {
 
     //Shuffle Players Array
     var _aux = [];
@@ -323,8 +321,10 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
 
         socket.on('nouveau_client', function (pseudo) {
             if (pseudo != null) pseudo = ent.encode(pseudo);
-            if (players.includes(pseudo)) {
-
+            if (!players.includes(pseudo)) {
+                console.log('Pseudo rejected');
+                socket.emit('reject_login');
+            } else {
                 socket.emit('pseudo_ok');
                 socket.pseudo = pseudo;
 
@@ -544,20 +544,19 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                         console.log("Password Rejected");
                         socket.emit('reject_pwd');
                     }
-                })
+                });
 
-            } else {
-                console.log('Pseudo rejected');
-                socket.emit('reject_login');
             }
         });
 
     });
 
-}); // endOf file reader
+};
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // Express Routes
 app.use(express.static('views'));
+
+play_game(players, hardMode, easyMode, givenHash);
 
 server.listen(port);
