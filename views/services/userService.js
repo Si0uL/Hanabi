@@ -24,45 +24,59 @@ function userService($q) {
         connectionAttempt: function(loginData) {
             var deferred = $q.defer();
             var socket = io.connect('http://' + loginData.server);
-            var logginError = 'OK';
 
             socket.emit('nouveau_client', loginData.username);
 
             setTimeout(function(){ deferred.reject('Timeout on Request: Check server IP'); }, 10000);
 
-            socket.on('reject_login', function() {
+            socket.once('reject_login', function() {
                 deferred.reject('Wrong username');
             });
 
-            socket.on('pseudo_ok', function() {
+            socket.once('pseudo_ok', function() {
                 socket.emit('login', loginData.password);
 
-                socket.on('reject_pwd', function() {
+                socket.once('reject_pwd', function() {
                     deferred.reject('Wrong Password');
                 });
 
-                socket.on('init', function(gameData) {
-                    for (var p in gameData.hands) {
-                        gameData.hands[p].reverse();
-                    };
-                    gameData.colleagues = [];
-                    gameData.players.forEach(function(elt,n) {
-                        if (elt === loginData.username) {
-                            for (var i = 0; i < gameData.players.length - 1; i++) {
-                                gameData.colleagues[i] = gameData.players[(n + i + 1) % gameData.players.length];
-                            };
-                        };
-                    });
-                    for (var i = 0; i < gameData.your_cards_angles.length; i++) {
-                        gameData.your_cards_angles[i] = {angle: gameData.your_cards_angles[i], index: i, noCard: gameData.your_cards_angles[i] === -1};
-                    };
+                socket.once('connected', function() {
 
-                    game = gameData;
                     userSocket = socket;
                     user = loginData.username;
 
                     deferred.resolve('ok')
                 });
+            });
+
+            return deferred.promise;
+        },
+        launchGame: function(players, mode) {
+            var deferred = $q.defer();
+
+            $scope.socket.emit('launch_game', $scope.selectedPlayers, $scope.gameMode);
+
+            setTimeout(function(){ deferred.reject('Timeout on Request'); }, 10000);
+
+            userSocket.once('init', function(gameData) {
+                for (var p in gameData.hands) {
+                    gameData.hands[p].reverse();
+                };
+                gameData.colleagues = [];
+                gameData.players.forEach(function(elt,n) {
+                    if (elt === loginData.username) {
+                        for (var i = 0; i < gameData.players.length - 1; i++) {
+                            gameData.colleagues[i] = gameData.players[(n + i + 1) % gameData.players.length];
+                        };
+                    };
+                });
+                for (var i = 0; i < gameData.your_cards_angles.length; i++) {
+                    gameData.your_cards_angles[i] = {angle: gameData.your_cards_angles[i], index: i, noCard: gameData.your_cards_angles[i] === -1};
+                };
+
+                game = gameData;
+
+                deferred.resolve('ok')
             });
 
             return deferred.promise;

@@ -4,7 +4,10 @@ angular
 
 function boardController( $scope, $state, userService ) {
 
-    $scope.selectedPlayers = undefined;
+    $scope.selectedPlayers = [];
+    $scope.alert = undefined;
+    $scope.socket = userService.getSocket();
+    $scope.username = userService.getUser();
 
     $scope.playersList = [
         'Louis',
@@ -35,7 +38,20 @@ function boardController( $scope, $state, userService ) {
 
 
     $scope.launch = function() {
-        console.log($scope.selectedPlayers, $scope.gameMode);
+        if ($scope.selectedPlayers.length < 1 || $scope.selectedPlayers.length > 4) {
+            $scope.alert = "Wrong number of Teammates";
+            if (!$scope.$$phase) $scope.$digest();
+        } else {
+            $scope.selectedPlayers.push($scope.usename);
+            userService.launchGame($scope.selectedPlayers, $scope.gameMode).then(
+                function(success) {
+                    $state.go('main.game');
+                }, function(error) {
+                    $scope.alert = error;
+                    if (!$scope.$$phase) $scope.$digest();
+                });
+            });
+        }
     };
 
 }
