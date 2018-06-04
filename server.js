@@ -335,211 +335,210 @@ var launch_game = function(players, hardMode, easyMode, givenHash, socket) {
     }
     recorded.gameDataInit.replayMode = true;
 
+    var to_send = JSON.parse(JSON.stringify(gameData));
+    to_send.your_cards_angles = [];
+    to_send.hands[socket.pseudo].forEach(function(elt) {
+        if (!elt) {
+            to_send.your_cards_angles.push(-1);
+        } else {
+            to_send.your_cards_angles.push(-elt.angle);
+        }
+    });
+    delete to_send.hands[socket.pseudo];
+    delete to_send.deck;
+    socket.emit('init', to_send);
+    socket.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: false, lastPlay: gameData.lastPlay});
+    socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
+    console.log(socket.pseudo,"logged in.");
 
-                        var to_send = JSON.parse(JSON.stringify(gameData));
-                        to_send.your_cards_angles = [];
-                        to_send.hands[socket.pseudo].forEach(function(elt) {
-                            if (!elt) {
-                                to_send.your_cards_angles.push(-1);
-                            } else {
-                                to_send.your_cards_angles.push(-elt.angle);
-                            }
-                        });
-                        delete to_send.hands[socket.pseudo];
-                        delete to_send.deck;
-                        socket.emit('init', to_send);
-                        socket.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: false, lastPlay: gameData.lastPlay});
-                        socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
-                        console.log(socket.pseudo,"logged in.");
+    var next_turn = function() {
+        gameData.indexNextToPlay = (gameData.indexNextToPlay + 1)%gameData.players.length;
+        gameData.nextToPlay = gameData.players[gameData.indexNextToPlay];
+        socket.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: game_mode, lastPlay: gameData.lastPlay});
+        socket.broadcast.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: game_mode, lastPlay: gameData.lastPlay});
+        recorded.turns[gameData.turn].push({event: 'next_turn', data: {playerUp: gameData.nextToPlay, lastPlay: gameData.lastPlay}});
+        if (gameData.remainingTurns > 0) {
+            gameData.remainingTurns --;
+            gameData.turn ++;
+            console.log("\nTURN " + gameData.turn + ": " + new Date());
+            console.log(gameData.nextToPlay + " is playing:");
+            recorded.turns.push([]);
+            fs.writeFileSync(jsonName, JSON.stringify(recorded));
+        } else if (gameData.remainingTurns == 0) {
+            socket.emit('game_end', "Game finished: You scored " + gameData.score);
+            socket.broadcast.emit('game_end', "Game finished: You scored " + gameData.score);
+            console.log("GAME FINISHED, SCORE: " + gameData.score);
+            recorded.turns[gameData.turn].push({event: 'game_finished', data: "Game finished: You scored " + gameData.score});
+            fs.writeFileSync(jsonName, JSON.stringify(recorded));
+        } else {
+            gameData.turn ++;
+            console.log("\nTURN " + gameData.turn + ": " + new Date());
+            console.log(gameData.nextToPlay + " is playing:");
+            recorded.turns.push([]);
+            fs.writeFileSync(jsonName, JSON.stringify(recorded));
+        }
+    }
 
-                        var next_turn = function() {
-                            gameData.indexNextToPlay = (gameData.indexNextToPlay + 1)%gameData.players.length;
-                            gameData.nextToPlay = gameData.players[gameData.indexNextToPlay];
-                            socket.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: game_mode, lastPlay: gameData.lastPlay});
-                            socket.broadcast.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: game_mode, lastPlay: gameData.lastPlay});
-                            recorded.turns[gameData.turn].push({event: 'next_turn', data: {playerUp: gameData.nextToPlay, lastPlay: gameData.lastPlay}});
-                            if (gameData.remainingTurns > 0) {
-                                gameData.remainingTurns --;
-                                gameData.turn ++;
-                                console.log("\nTURN " + gameData.turn + ": " + new Date());
-                                console.log(gameData.nextToPlay + " is playing:");
-                                recorded.turns.push([]);
-                                fs.writeFileSync(jsonName, JSON.stringify(recorded));
-                            } else if (gameData.remainingTurns == 0) {
-                                socket.emit('game_end', "Game finished: You scored " + gameData.score);
-                                socket.broadcast.emit('game_end', "Game finished: You scored " + gameData.score);
-                                console.log("GAME FINISHED, SCORE: " + gameData.score);
-                                recorded.turns[gameData.turn].push({event: 'game_finished', data: "Game finished: You scored " + gameData.score});
-                                fs.writeFileSync(jsonName, JSON.stringify(recorded));
-                            } else {
-                                gameData.turn ++;
-                                console.log("\nTURN " + gameData.turn + ": " + new Date());
-                                console.log(gameData.nextToPlay + " is playing:");
-                                recorded.turns.push([]);
-                                fs.writeFileSync(jsonName, JSON.stringify(recorded));
-                            }
-                        }
+    socket.on('playRequest', function(card_index) {
+        if (socket.pseudo != gameData.nextToPlay) {
+            socket.emit('notify', 'It\'s not your turn');
+        } else {
+            // update gameData
+            var card = gameData.hands[socket.pseudo].splice(card_index,1)[0];
+            var drawnCard = gameData.deck.pop();
+            gameData.remainingCards --;
+            gameData.hands[socket.pseudo].push(drawnCard);
+            console.log(socket.pseudo, "plays",card);
+            // Correct case
+            if (card.number == (gameData.found[card.color]+1)) {
+                gameData.score ++;
+                console.log("Correct");
+                gameData.lastPlay = socket.pseudo + " plays " + card.color + " " + card.number;
+                console.log(gameData.lastPlay);
+                gameData.found[card.color] ++;
+                socket.emit('played', card.color);
+                socket.broadcast.emit('played', card.color);
+                recorded.turns[gameData.turn].push({event: 'played', data: card.color});
+                if (card.number == 5 && gameData.informations != 8) {
+                    gameData.informations ++;
+                    socket.emit('info', 'add');
+                    socket.broadcast.emit('info', 'add');
+                    recorded.turns[gameData.turn].push({event: 'info', data: 'add'});
+                }
+                if (gameData.score == 30) {
+                    socket.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
+                    socket.broadcast.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
+                    recorded.turns[gameData.turn].push({event: 'game_end', data: "Game finished: Congratulations, you scored 30 !!"});
+                    console.log("GAME FINISHED, SCORE: 30");
+                }
+            // Incorrect case
+            } else {
+                console.log("Incorrect,", gameData.warnings+1, "warnings");
+                gameData.lastPlay = socket.pseudo + " atemps to play " + card.color + " " + card.number;
+                console.log(gameData.lastPlay);
+                gameData.discarded.push(card);
+                updateExpected();
+                socket.emit('discarded', card, gameData.maxScore, gameData.maxDiscard);
+                socket.broadcast.emit('discarded', card, gameData.maxScore, gameData.maxDiscard);
+                recorded.turns[gameData.turn].push({event: 'discarded', data: card});
+                gameData.warnings ++;
+                socket.emit('warning', {card: card, pseudo: socket.pseudo});
+                socket.broadcast.emit('warning', {card: card, pseudo: socket.pseudo});
+                recorded.turns[gameData.turn].push({event: 'warning', data: {card: card, pseudo: socket.pseudo}});
+                if (gameData.warnings == 3) {
+                    socket.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
+                    socket.broadcast.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
+                    console.log("GAME FINISHED, SCORE: 0");
+                    recorded.turns[gameData.turn].push({event: 'game_end', data: "GAME FINISHED, SCORE: 0"});
+                }
+            }
+            // Send drawn card
+            socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
+            socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
+            recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: JSON.parse(JSON.stringify(gameData.hands[socket.pseudo]))}});
+            // if last card drawn
+            if (gameData.remainingCards == 0) {
+                gameData.remainingTurns = gameData.players.length;
+                socket.emit('notify', socket.pseudo + ' drew the last card, everybody has now one turn left.');
+                socket.broadcast.emit('notify', socket.pseudo + ' drew the last card, everybody has now one turn left.');
+            }
+            next_turn();
+        }
+    });
 
-                        socket.on('playRequest', function(card_index) {
-                            if (socket.pseudo != gameData.nextToPlay) {
-                                socket.emit('notify', 'It\'s not your turn');
-                            } else {
-                                // update gameData
-                                var card = gameData.hands[socket.pseudo].splice(card_index,1)[0];
-                                var drawnCard = gameData.deck.pop();
-                                gameData.remainingCards --;
-                                gameData.hands[socket.pseudo].push(drawnCard);
-                                console.log(socket.pseudo, "plays",card);
-                                // Correct case
-                                if (card.number == (gameData.found[card.color]+1)) {
-                                    gameData.score ++;
-                                    console.log("Correct");
-                                    gameData.lastPlay = socket.pseudo + " plays " + card.color + " " + card.number;
-                                    console.log(gameData.lastPlay);
-                                    gameData.found[card.color] ++;
-                                    socket.emit('played', card.color);
-                                    socket.broadcast.emit('played', card.color);
-                                    recorded.turns[gameData.turn].push({event: 'played', data: card.color});
-                                    if (card.number == 5 && gameData.informations != 8) {
-                                        gameData.informations ++;
-                                        socket.emit('info', 'add');
-                                        socket.broadcast.emit('info', 'add');
-                                        recorded.turns[gameData.turn].push({event: 'info', data: 'add'});
-                                    }
-                                    if (gameData.score == 30) {
-                                        socket.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
-                                        socket.broadcast.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
-                                        recorded.turns[gameData.turn].push({event: 'game_end', data: "Game finished: Congratulations, you scored 30 !!"});
-                                        console.log("GAME FINISHED, SCORE: 30");
-                                    }
-                                // Incorrect case
-                                } else {
-                                    console.log("Incorrect,", gameData.warnings+1, "warnings");
-                                    gameData.lastPlay = socket.pseudo + " atemps to play " + card.color + " " + card.number;
-                                    console.log(gameData.lastPlay);
-                                    gameData.discarded.push(card);
-                                    updateExpected();
-                                    socket.emit('discarded', card, gameData.maxScore, gameData.maxDiscard);
-                                    socket.broadcast.emit('discarded', card, gameData.maxScore, gameData.maxDiscard);
-                                    recorded.turns[gameData.turn].push({event: 'discarded', data: card});
-                                    gameData.warnings ++;
-                                    socket.emit('warning', {card: card, pseudo: socket.pseudo});
-                                    socket.broadcast.emit('warning', {card: card, pseudo: socket.pseudo});
-                                    recorded.turns[gameData.turn].push({event: 'warning', data: {card: card, pseudo: socket.pseudo}});
-                                    if (gameData.warnings == 3) {
-                                        socket.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
-                                        socket.broadcast.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
-                                        console.log("GAME FINISHED, SCORE: 0");
-                                        recorded.turns[gameData.turn].push({event: 'game_end', data: "GAME FINISHED, SCORE: 0"});
-                                    }
-                                }
-                                // Send drawn card
-                                socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
-                                socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
-                                recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: JSON.parse(JSON.stringify(gameData.hands[socket.pseudo]))}});
-                                // if last card drawn
-                                if (gameData.remainingCards == 0) {
-                                    gameData.remainingTurns = gameData.players.length;
-                                    socket.emit('notify', socket.pseudo + ' drew the last card, everybody has now one turn left.');
-                                    socket.broadcast.emit('notify', socket.pseudo + ' drew the last card, everybody has now one turn left.');
-                                }
-                                next_turn();
-                            }
-                        });
+    socket.on('discardRequest', function(card_index) {
+        if (socket.pseudo != gameData.nextToPlay) {
+            socket.emit('notify', 'It\'s not your turn');
+        } else {
+            var card = gameData.hands[socket.pseudo].splice(card_index,1)[0];
+            var drawnCard = gameData.deck.pop();
+            gameData.remainingCards --;
+            gameData.hands[socket.pseudo].push(drawnCard);
+            gameData.lastPlay = socket.pseudo + " discards " + card.color + " " + card.number;
+            console.log(gameData.lastPlay);
+            gameData.discarded.push(card);
+            updateExpected();
+            socket.emit('discarded', card, gameData.maxScore, gameData.maxDiscard);
+            socket.broadcast.emit('discarded', card, gameData.maxScore, gameData.maxDiscard);
+            recorded.turns[gameData.turn].push({event: 'discarded', data: card});
+            socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
+            socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
+            recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: JSON.parse(JSON.stringify(gameData.hands[socket.pseudo]))}});
+            if (gameData.informations != 8) {
+                gameData.informations ++;
+                socket.emit('info', 'add');
+                socket.broadcast.emit('info', 'add');
+                recorded.turns[gameData.turn].push({event: 'info', data: 'add'});
+            }
+            // if last card drawn
+            if (gameData.remainingCards == 0) {
+                gameData.remainingTurns = gameData.players.length;
+                socket.emit('notify', socket.pseudo + ' drew the last card, everybody has now one turn left.');
+                socket.broadcast.emit('notify', socket.pseudo + ' drew the last card, everybody has now one turn left.');
+            }
+            next_turn()
+        }
+    });
 
-                        socket.on('discardRequest', function(card_index) {
-                            if (socket.pseudo != gameData.nextToPlay) {
-                                socket.emit('notify', 'It\'s not your turn');
-                            } else {
-                                var card = gameData.hands[socket.pseudo].splice(card_index,1)[0];
-                                var drawnCard = gameData.deck.pop();
-                                gameData.remainingCards --;
-                                gameData.hands[socket.pseudo].push(drawnCard);
-                                gameData.lastPlay = socket.pseudo + " discards " + card.color + " " + card.number;
-                                console.log(gameData.lastPlay);
-                                gameData.discarded.push(card);
-                                updateExpected();
-                                socket.emit('discarded', card, gameData.maxScore, gameData.maxDiscard);
-                                socket.broadcast.emit('discarded', card, gameData.maxScore, gameData.maxDiscard);
-                                recorded.turns[gameData.turn].push({event: 'discarded', data: card});
-                                socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
-                                socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
-                                recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: JSON.parse(JSON.stringify(gameData.hands[socket.pseudo]))}});
-                                if (gameData.informations != 8) {
-                                    gameData.informations ++;
-                                    socket.emit('info', 'add');
-                                    socket.broadcast.emit('info', 'add');
-                                    recorded.turns[gameData.turn].push({event: 'info', data: 'add'});
-                                }
-                                // if last card drawn
-                                if (gameData.remainingCards == 0) {
-                                    gameData.remainingTurns = gameData.players.length;
-                                    socket.emit('notify', socket.pseudo + ' drew the last card, everybody has now one turn left.');
-                                    socket.broadcast.emit('notify', socket.pseudo + ' drew the last card, everybody has now one turn left.');
-                                }
-                                next_turn()
-                            }
-                        });
+    socket.on('infoRequest', function(data) {
+        if (socket.pseudo != gameData.nextToPlay) {
+            socket.emit('notify', 'It\'s not your turn');
+        } else {
+            if (gameData.informations != 0) {
+                if (is_info_correct(data.info, gameData.hands[data.player])) {
+                    var sentence = eval_info(data.info, gameData.hands[data.player]);
+                    gameData.lastPlay = socket.pseudo + " says " + data.player + ": " + sentence;
+                    console.log(gameData.lastPlay);
+                    gameData.informations --;
+                    socket.emit('info', 'remove');
+                    socket.broadcast.emit('info', 'remove');
+                    recorded.turns[gameData.turn].push({event: 'info', data: 'remove'});
+                    next_turn();
+                } else {
+                    socket.emit('notify', data.player + " has no " + data.info + " in his hand !");
+                }
+            } else {
+                socket.emit('notify', 'No information available!');
+            }
+        }
+    });
 
-                        socket.on('infoRequest', function(data) {
-                            if (socket.pseudo != gameData.nextToPlay) {
-                                socket.emit('notify', 'It\'s not your turn');
-                            } else {
-                                if (gameData.informations != 0) {
-                                    if (is_info_correct(data.info, gameData.hands[data.player])) {
-                                        var sentence = eval_info(data.info, gameData.hands[data.player]);
-                                        gameData.lastPlay = socket.pseudo + " says " + data.player + ": " + sentence;
-                                        console.log(gameData.lastPlay);
-                                        gameData.informations --;
-                                        socket.emit('info', 'remove');
-                                        socket.broadcast.emit('info', 'remove');
-                                        recorded.turns[gameData.turn].push({event: 'info', data: 'remove'});
-                                        next_turn();
-                                    } else {
-                                        socket.emit('notify', data.player + " has no " + data.info + " in his hand !");
-                                    }
-                                } else {
-                                    socket.emit('notify', 'No information available!');
-                                }
-                            }
-                        });
+    socket.on('rotateRequest', function(data) {
+        console.log(socket.pseudo,"wants to rotate his card nb",data.id,"by an angle of",data.angle,"degrees");
+        gameData.hands[socket.pseudo][data.id].angle += data.angle;
+        socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
+        socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
+        recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: JSON.parse(JSON.stringify(gameData.hands[socket.pseudo]))}});
+    });
 
-                        socket.on('rotateRequest', function(data) {
-                            console.log(socket.pseudo,"wants to rotate his card nb",data.id,"by an angle of",data.angle,"degrees");
-                            gameData.hands[socket.pseudo][data.id].angle += data.angle;
-                            socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
-                            socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
-                            recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: JSON.parse(JSON.stringify(gameData.hands[socket.pseudo]))}});
-                        });
+    socket.on('reorderRequest', function(str) {
+        str = ent.encode(str);
+        if (str.length == gameData.cardsPerPlayer && reorder_correct(str)) {
+            var new_hand = [];
+            for (var i = 0; i < str.length; i++) {
+                new_hand.push(gameData.hands[socket.pseudo][Number(str[i])-1]);
+            }
+            gameData.hands[socket.pseudo] = new_hand;
+            console.log(socket.pseudo,"reorders his hand. New hand:",new_hand);
+            socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
+            socket.emit('notify', 'Reordered, changes applied.');
+            socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
+            recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: JSON.parse(JSON.stringify(gameData.hands[socket.pseudo]))}});
+        } else {
+            socket.emit('notify', 'Invalid order given, no change applied.');
+        }
+    });
 
-                        socket.on('reorderRequest', function(str) {
-                            str = ent.encode(str);
-                            if (str.length == gameData.cardsPerPlayer && reorder_correct(str)) {
-                                var new_hand = [];
-                                for (var i = 0; i < str.length; i++) {
-                                    new_hand.push(gameData.hands[socket.pseudo][Number(str[i])-1]);
-                                }
-                                gameData.hands[socket.pseudo] = new_hand;
-                                console.log(socket.pseudo,"reorders his hand. New hand:",new_hand);
-                                socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
-                                socket.emit('notify', 'Reordered, changes applied.');
-                                socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
-                                recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: JSON.parse(JSON.stringify(gameData.hands[socket.pseudo]))}});
-                            } else {
-                                socket.emit('notify', 'Invalid order given, no change applied.');
-                            }
-                        });
+    socket.on('message', function(message) {
+        str = ent.encode(message);
+        socket.emit('message', {pseudo: socket.pseudo, message: message});
+        socket.broadcast.emit('message', {pseudo: socket.pseudo, message: message});
+        messages = [{pseudo: socket.pseudo, message: message}].concat(messages);
+    });
 
-                        socket.on('message', function(message) {
-                            str = ent.encode(message);
-                            socket.emit('message', {pseudo: socket.pseudo, message: message});
-                            socket.broadcast.emit('message', {pseudo: socket.pseudo, message: message});
-                            messages = [{pseudo: socket.pseudo, message: message}].concat(messages);
-                        });
-
-                        socket.on('message_history_request', function() {
-                            socket.emit('message_history', messages);
-                        });
+    socket.on('message_history_request', function() {
+        socket.emit('message_history', messages);
+    });
 
 
 
