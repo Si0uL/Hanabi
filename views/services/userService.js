@@ -25,28 +25,20 @@ function userService($q) {
             var deferred = $q.defer();
             var socket = io.connect('http://' + loginData.server);
 
-            socket.emit('nouveau_client', loginData.username);
+            socket.emit('login', loginData.username, loginData.password);
 
             setTimeout(function(){ deferred.reject('Timeout on Request: Check server IP'); }, 10000);
 
             socket.once('reject_login', function() {
-                deferred.reject('Wrong username');
+                deferred.reject('Wrong username or password');
             });
 
-            socket.once('pseudo_ok', function() {
-                socket.emit('login', loginData.password);
+            socket.once('connected', function(inGame) {
 
-                socket.once('reject_pwd', function() {
-                    deferred.reject('Wrong Password');
-                });
+                userSocket = socket;
+                user = loginData.username;
 
-                socket.once('connected', function() {
-
-                    userSocket = socket;
-                    user = loginData.username;
-
-                    deferred.resolve('ok')
-                });
+                deferred.resolve(inGame);
             });
 
             return deferred.promise;

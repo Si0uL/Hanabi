@@ -21,8 +21,8 @@ function loginController( $scope, $state, userService ) {
     $scope.signIn = function() {
         $scope.loginError = '';
         userService.connectionAttempt($scope.loginData).then(
-            function(success) {
-                $state.go('main.game');
+            function(inGame) {
+                if (inGame) {$state.go('main.game')} else {$state.go('board')};
             }, function(error) {
                 $scope.loginError = error;
                 if (!$scope.$$phase) $scope.$digest();

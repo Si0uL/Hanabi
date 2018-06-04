@@ -50,8 +50,7 @@ function boardController( $scope, $state, userService ) {
                     $scope.alert = error;
                     if (!$scope.$$phase) $scope.$digest();
                 });
-            });
-        }
+        };
     };
 
 }

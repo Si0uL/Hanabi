@@ -41,6 +41,12 @@ players.forEach(function(elt) {
     aux += elt + " ";
 });
 
+// Define players status
+var inGame = {};
+players.forEach(function(elt) {
+    inGame[elt] = false;
+});
+
 // Functions definitions
 var dealer = function () {
     cards = [];
@@ -213,7 +219,7 @@ var expectedScore = function(found, deckAndHands, alreadyDiscarded, playersNumbe
     return [maxScore, maxDiscard];
 };
 
-var play_game = function(players, hardMode, easyMode, givenHash) {
+var play_game = function(players, hardMode, easyMode, givenHash, socket) {
 
     //Shuffle Players Array
     var _aux = [];
@@ -313,27 +319,7 @@ var play_game = function(players, hardMode, easyMode, givenHash) {
     }
     recorded.gameDataInit.replayMode = true;
 
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // EventListeners
-    io.sockets.on('connection', function (socket) {
 
-        console.log("connection");
-
-        socket.on('nouveau_client', function (pseudo) {
-            if (pseudo != null) pseudo = ent.encode(pseudo);
-            if (!players.includes(pseudo)) {
-                console.log('Pseudo rejected');
-                socket.emit('reject_login');
-            } else {
-                socket.emit('pseudo_ok');
-                socket.pseudo = pseudo;
-
-                socket.on('login', function(pwd) {
-                    if (pwd != null) pwd = ent.encode(pwd);
-                    if (pwd == passwords[socket.pseudo]) {
-
-                        //!!!!!!!!!!!!!!!!!!!
-                        //Etering The main
                         var to_send = JSON.parse(JSON.stringify(gameData));
                         to_send.your_cards_angles = [];
                         to_send.hands[socket.pseudo].forEach(function(elt) {
@@ -540,16 +526,6 @@ var play_game = function(players, hardMode, easyMode, givenHash) {
                         });
 
 
-                    } else {
-                        console.log("Password Rejected");
-                        socket.emit('reject_pwd');
-                    }
-                });
-
-            }
-        });
-
-    });
 
 };
 
@@ -557,6 +533,23 @@ var play_game = function(players, hardMode, easyMode, givenHash) {
 // Express Routes
 app.use(express.static('views'));
 
-play_game(players, hardMode, easyMode, givenHash);
-
 server.listen(port);
+
+io.sockets.on('connection', function (socket) {
+
+    console.log("connection");
+
+    socket.once('login', function (pseudo, pwd) {
+        if (pseudo != null) pseudo = ent.encode(pseudo);
+        if (pwd != null) pwd = ent.encode(pwd);
+        if (!players.includes(pseudo) || pwd != passwords[pseudo]) {
+            console.log('Connection Refused');
+            socket.emit('reject_login');
+        } else {
+            socket.emit('connected', inGame[pseudo]);
+            socket.pseudo = pseudo;
+
+        };
+    });
+
+});
