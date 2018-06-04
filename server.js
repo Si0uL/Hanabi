@@ -259,8 +259,6 @@ var launch_game = function(players, hardMode, easyMode, givenHash, socket) {
     console.log("Players: " + aux + "\n");
 
     // Init of game variables
-    var indexNextToPlay = 0;
-    var cardsPerPlayer = [null,null,5,5,4,4][players.length];
     var gameData = {
         replayMode: false,
         players: players,
@@ -277,20 +275,20 @@ var launch_game = function(players, hardMode, easyMode, givenHash, socket) {
         },
         informations: 8,
         warnings: 0,
-        turn: 0,
+        turn: 1,
         remainingCards: 55,
         remainingTurns: -1,
         discarded: [],
-        nextToPlay: players[indexNextToPlay],
-        indexNextToPlay: indexNextToPlay,
-        cardsPerPlayer: cardsPerPlayer,
+        nextToPlay: players[0],
+        indexNextToPlay: 0,
+        cardsPerPlayer: [null,null,5,5,4,4][players.length],
         lastPlay: "",
         hardMode: hardMode,
         easyMode: easyMode,
         maxScore: undefined,
         maxDiscard: undefined,
+        deckHash: hash(gameData.deck, gameData.players.length),
     };
-    gameData.deckHash = hash(gameData.deck, gameData.players.length);
     var messages = [];
 
     // Cards deal
@@ -318,7 +316,6 @@ var launch_game = function(players, hardMode, easyMode, givenHash, socket) {
     console.log(gameData.hands);
     console.log(gameData);
 
-    gameData.turn ++;
     console.log("\nTURN " + gameData.turn + ": " + new Date());
     console.log(gameData.nextToPlay + " is playing:");
 
@@ -335,6 +332,7 @@ var launch_game = function(players, hardMode, easyMode, givenHash, socket) {
     }
     recorded.gameDataInit.replayMode = true;
 
+    // Data to be sent
     var to_send = JSON.parse(JSON.stringify(gameData));
     to_send.your_cards_angles = [];
     to_send.hands[socket.pseudo].forEach(function(elt) {
@@ -346,9 +344,9 @@ var launch_game = function(players, hardMode, easyMode, givenHash, socket) {
     });
     delete to_send.hands[socket.pseudo];
     delete to_send.deck;
+
+    // Beginning of transmission
     socket.emit('init', to_send);
-    socket.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: false, lastPlay: gameData.lastPlay});
-    socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
     console.log(socket.pseudo,"logged in.");
 
     var next_turn = function() {
@@ -540,8 +538,6 @@ var launch_game = function(players, hardMode, easyMode, givenHash, socket) {
         socket.emit('message_history', messages);
     });
 
-
-
 };
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -552,8 +548,6 @@ server.listen(port);
 
 io.sockets.on('connection', function (socket) {
 
-    console.log("connection");
-
     socket.once('login', function (pseudo, pwd) {
         if (pseudo != null) pseudo = ent.encode(pseudo);
         if (pwd != null) pwd = ent.encode(pwd);
@@ -561,6 +555,7 @@ io.sockets.on('connection', function (socket) {
             console.log('Connection Refused');
             socket.emit('reject_login');
         } else {
+            console.log(pseudo + " connected");
             socket.emit('connected', inGame[pseudo], getAvailables(pseudo));
             socket.pseudo = pseudo;
 
