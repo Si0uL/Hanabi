@@ -30,7 +30,7 @@ function boardController( $scope, $state, userService ) {
             $scope.alert = "Wrong number of Teammates";
             if (!$scope.$$phase) $scope.$digest();
         } else {
-            $scope.selectedPlayers.push($scope.usename);
+            $scope.selectedPlayers.push($scope.username);
             userService.launchGame($scope.selectedPlayers, $scope.gameMode).then(
                 function(success) {
                     $state.go('main.game');

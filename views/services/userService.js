@@ -51,7 +51,7 @@ function userService($q) {
         launchGame: function(players, mode) {
             var deferred = $q.defer();
 
-            $scope.socket.emit('launch_game', $scope.selectedPlayers, $scope.gameMode);
+            userSocket.emit('launch_game', players, mode);
 
             setTimeout(function(){ deferred.reject('Timeout on Request'); }, 10000);
 
@@ -61,7 +61,7 @@ function userService($q) {
                 };
                 gameData.colleagues = [];
                 gameData.players.forEach(function(elt,n) {
-                    if (elt === loginData.username) {
+                    if (elt === user) {
                         for (var i = 0; i < gameData.players.length - 1; i++) {
                             gameData.colleagues[i] = gameData.players[(n + i + 1) % gameData.players.length];
                         };

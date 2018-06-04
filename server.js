@@ -58,6 +58,12 @@ var getAvailables = function(myName) {
     return to_return;
 };
 
+var changeStatus = function(playersArr, goingInGame) {
+    playersArr.forEach(function(elt) {
+        inGame[elt] = goingInGame;
+    });
+}
+
 var dealer = function () {
     cards = [];
     ['black', 'red', 'blue', 'yellow', 'green'].forEach(function(color){
@@ -229,7 +235,7 @@ var expectedScore = function(found, deckAndHands, alreadyDiscarded, playersNumbe
     return [maxScore, maxDiscard];
 };
 
-var play_game = function(players, hardMode, easyMode, givenHash, socket) {
+var launch_game = function(players, hardMode, easyMode, givenHash, socket) {
 
     //Shuffle Players Array
     var _aux = [];
@@ -558,6 +564,15 @@ io.sockets.on('connection', function (socket) {
         } else {
             socket.emit('connected', inGame[pseudo], getAvailables(pseudo));
             socket.pseudo = pseudo;
+
+            socket.on('launch_game', function(players, mode) {
+                var hardMode = mode === 'hard';
+                var easyMode = mode === 'easy';
+                // TODO: improve that by getting optional hash in board
+                var givenHash = false;
+                changeStatus(players, true);
+                launch_game(players, hardMode, easyMode, givenHash, socket);
+            });
 
         };
     });
