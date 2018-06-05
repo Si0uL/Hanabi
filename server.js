@@ -101,7 +101,7 @@ var hash = function (arr, nb) {
         'multicolor': 5
     };
     arr.forEach(function(elt) {
-        to_return += String.fromCharCode(40 + color_nb[elt.color]*5 + elt.number);
+        to_return += String.fromCharCode(40 + color_nb[elt.color]*5 + elt.number - 1);
     });
     return to_return;
 };
@@ -114,7 +114,7 @@ var unHash = function (str, nb) {
     var nbToColor = ['black', 'red', 'blue', 'yellow', 'green', 'multicolor'];
     for (var i = 0; i < str.length; i++) {
         var _c = nbToColor[Math.floor((str[i].charCodeAt(0) - 40)/5)];
-        var _n = str[i].charCodeAt(0) % 5;
+        var _n = str[i].charCodeAt(0) % 5 + 1;
         to_return.push({color: _c, number: _n, angle: 0});
     }
     return to_return;
