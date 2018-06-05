@@ -10,29 +10,18 @@ var app = express(),
 // Beginning of main
 
 // Arguments reading
-if (!["test", "game", "game-hard", "game-easy"].includes(process.argv[2])) throw "Invalid second argument, use 'test', 'game' or 'game-hard'";
-var game_mode = (process.argv[2].includes("game"));
-var hardMode = (process.argv[2] == "game-hard");
-var easyMode = (process.argv[2] == "game-easy");
-
-var port = Number(process.argv[3]);
-
-//Read hash if given
-var givenHash = undefined;
-if (process.argv[4] == "h") {
-    givenHash = process.argv[5];
-    process.argv.splice(4, 2); //remove the two uneeded arguments after reading it.
-};
-
-// Read the players
-var players = process.argv.splice(4);
-// Wrong number of players
-if (players.length < 2 || players.length > 5) throw "You must choose between 2 and 5 players";
+var port = Number(process.argv[2]);
 
 // Parse passwords.json
 var passwords;
 var data = fs.readFileSync('./data/passwords.json', 'utf8');
 passwords = JSON.parse(data);
+
+// Get Players list
+var players = [];
+for (var key in passwords) {
+    players.push(key);
+};
 
 // Check all players' password
 var aux = "";
