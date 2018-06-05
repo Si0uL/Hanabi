@@ -234,6 +234,12 @@ var launch_game = function(socket, useCache, players, hardMode, easyMode, hashCo
 
     // Game being initialized, must init all variables
     if (!useCache) {
+
+        // check if player is not in game
+        if (busy[socket.player]) {
+            return
+        };
+
         //Shuffle Players Array
         var _aux = [];
         for (var i = players.length; i > 0; i--) {
