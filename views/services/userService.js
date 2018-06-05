@@ -76,16 +76,20 @@ function userService($q) {
 
             return deferred.promise;
         },
-        launchGame: function(cached, players, mode) {
+        launchGame: function(cached, players, mode, hash) {
             var deferred = $q.defer();
 
-            userSocket.emit('launch_game', cached, players, mode);
+            userSocket.emit('launch_game', cached, players, mode, hash);
 
             setTimeout(function(){ deferred.reject('Timeout on Request'); }, 10000);
 
             userSocket.once('init', function(gameData) {
                 initGame(gameData);
                 deferred.resolve('ok')
+            });
+
+            userSocket.once('hash_error', function(err) {
+                deferred.reject(err)
             });
 
             return deferred.promise;

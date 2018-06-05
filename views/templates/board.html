@@ -40,6 +40,19 @@
                             <button class="btn btn-info" ng-class="{'active': gameMode === 'hard'}" ng-click="goHard()">Hard</button>
 
                             <br>
+
+                            <!-- Use Hash ? -->
+                            <div class="checkbox">
+                                <label><input type="checkbox" ng-model='useHash'> Use hash code</label>
+                            </div>
+
+                            <!-- Hash Field -->
+                            <div class="form-group">
+                                <input type="text" class="form-control" ng-model="hash.code" ng-if="useHash" placeholder="Paste hash code">
+                            </div>
+
+                            <br>
+
                         </div>
 
                     </div>

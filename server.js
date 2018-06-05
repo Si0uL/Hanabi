@@ -56,7 +56,7 @@ var changeStatus = function(playersArr, goingInGame) {
     });
 }
 
-var dealer = function () {
+var dealer = function (easyMode) {
     cards = [];
     ['black', 'red', 'blue', 'yellow', 'green'].forEach(function(color){
         [1,1,1,2,2,3,3,4,4,5].forEach(function(number){
@@ -227,7 +227,7 @@ var expectedScore = function(found, deckAndHands, alreadyDiscarded, playersNumbe
     return [maxScore, maxDiscard];
 };
 
-var launch_game = function(socket, useCache, players, hardMode, easyMode, givenHash) {
+var launch_game = function(socket, useCache, players, hardMode, easyMode, hashCode) {
 
     var gameData;
     var cacheIndex;
@@ -243,12 +243,18 @@ var launch_game = function(socket, useCache, players, hardMode, easyMode, givenH
 
         //Deal or Reconstitute Deck
         var deck;
-        if (givenHash) {
-            deck = unHash(givenHash, players.length);
+        if (hashCode) {
+            try {
+                deck = unHash(hashCode, players.length);
+            } catch (err) {
+                console.log(err);
+                socket.emit('hash_error', err);
+                return
+            };
         } else {
-            deck = dealer();
+            deck = dealer(easyMode);
             while (!isCool(deck)) {
-                deck = dealer();
+                deck = dealer(easyMode);
             };
         };
 
@@ -282,8 +288,8 @@ var launch_game = function(socket, useCache, players, hardMode, easyMode, givenH
             maxScore: undefined,
             maxDiscard: undefined,
             deckHash: hash(deck, players.length),
+            messages: [],
         };
-        var messages = [];
 
         // Cards deal
         players.forEach(function(name) {
@@ -325,6 +331,8 @@ var launch_game = function(socket, useCache, players, hardMode, easyMode, givenH
         invited.splice(invited.indexOf(socket.pseudo), 1);
         socket.broadcast.emit('invitation', invited);
 
+        console.log('Game started with ' + players);
+
     // Game already in progress, must load the game from cache
     } else {
         gamesCache.forEach(function(elt, n) {
@@ -335,6 +343,10 @@ var launch_game = function(socket, useCache, players, hardMode, easyMode, givenH
         });
     };
 
+    // Players are now busy
+    changeStatus(gameData.players, true);
+
+    // Future recorded JSON
     var recorded = {
         gameDataInit: JSON.parse(JSON.stringify(gameData)),
         turns: [[], []],
@@ -523,11 +535,11 @@ var launch_game = function(socket, useCache, players, hardMode, easyMode, givenH
         str = ent.encode(message);
         socket.emit('message', {pseudo: socket.pseudo, message: message});
         socket.broadcast.emit('message', {pseudo: socket.pseudo, message: message});
-        messages = [{pseudo: socket.pseudo, message: message}].concat(messages);
+        gameData.messages = [{pseudo: socket.pseudo, message: message}].concat(gameData.messages);
     });
 
     socket.on('message_history_request', function() {
-        socket.emit('message_history', messages);
+        socket.emit('message_history', gameData.messages);
     });
 
 };
@@ -554,16 +566,13 @@ io.sockets.on('connection', function (socket) {
             // lauch immediatly using cached gameData
             if (inGame[pseudo]) {launch_game(socket, true)};
 
-            socket.on('launch_game', function(cached, players, mode) {
+            socket.on('launch_game', function(cached, players, mode, hashCode) {
                 if (cached) {
                     launch_game(socket, true);
                 } else {
                     var hardMode = mode === 'hard';
                     var easyMode = mode === 'easy';
-                    // TODO: improve that by getting optional hash in board
-                    var givenHash = false;
-                    changeStatus(players, true);
-                    launch_game(socket, false, players, hardMode, easyMode, givenHash);
+                    launch_game(socket, false, players, hardMode, easyMode, hashCode);
                 };
             });
 
