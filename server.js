@@ -236,7 +236,7 @@ var launch_game = function(socket, useCache, players, hardMode, easyMode, hashCo
     if (!useCache) {
 
         // check if player is not in game
-        if (busy[socket.player]) {
+        if (inGame[socket.player]) {
             return
         };
 
