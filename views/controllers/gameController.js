@@ -89,7 +89,20 @@ function gameController( $scope, $state, userService ) {
     });
 
     $scope.socket.on('game_end', function(message) {
-        alert('Game Finished:\n\n' + message);
+        alert(message);
+        $state.go('main.board');
+    });
+
+    $scope.socket.on('abandon', function(player) {
+        if (confirm(player + ' wants to abandon. Do you agree? \nThe game will be considered as a defeat (0 pts) \nYou have 30 seconds to decline.')) {
+            $scope.socket.emit('abandonAgree');
+        } else {
+            $scope.socket.emit('abandonDecline');
+        };
+    });
+
+    $scope.socket.on('abandonFail', function() {
+        alert('Abandon was declined by at least one teammate.');
     });
 
     // Action functions
@@ -161,6 +174,12 @@ function gameController( $scope, $state, userService ) {
         $scope.socket.emit('infoRequest', $scope.infoToSend);
         $scope.nextInfo = '';
         $scope.nextInfoEvaluated = '';
+    };
+
+    $scope.abandon = function() {
+        if (confirm('Are you sure you want to abandon? \nThe game will be considered as a defeat (0 pts) \nYour teammates have 30 seconds to decline.')) {
+            $scope.socket.emit('abandonRequest');
+        };
     };
 
     // Chat

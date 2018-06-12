@@ -352,6 +352,11 @@ var launch_game = function(socket, useCache, players, hardMode, easyMode, hashCo
     // Players are now busy
     changeStatus(gameData.players, true);
 
+    // Is a surrending vote in progress ?
+    var voteInProgress = false;
+    var declinedAbandon = 0;
+    var approvedAbandon = 0;
+
     // Future recorded JSON
     var recorded = {
         gameDataInit: JSON.parse(JSON.stringify(gameData)),
@@ -375,6 +380,19 @@ var launch_game = function(socket, useCache, players, hardMode, easyMode, hashCo
     // Beginning of transmission
     socket.emit('init', to_send);
 
+    var endGame = function(message) {
+        socket.emit('game_end', message);
+        socket.broadcast.emit('game_end', message);
+        recorded.turns[gameData.turn].push({event: 'game_finished', data: message});
+        fs.writeFileSync(gameData.jsonName, JSON.stringify(recorded));
+
+        // Delete cache
+        delete gamesCache[cacheIndex];
+
+        // Players no longer in game
+        changeStatus(gameData.players, false);
+    };
+
     var next_turn = function() {
         gameData.indexNextToPlay = (gameData.indexNextToPlay + 1)%gameData.players.length;
         gameData.nextToPlay = gameData.players[gameData.indexNextToPlay];
@@ -387,10 +405,7 @@ var launch_game = function(socket, useCache, players, hardMode, easyMode, hashCo
             recorded.turns.push([]);
             fs.writeFileSync(gameData.jsonName, JSON.stringify(recorded));
         } else if (gameData.remainingTurns == 0) {
-            socket.emit('game_end', "Game finished: You scored " + gameData.score);
-            socket.broadcast.emit('game_end', "Game finished: You scored " + gameData.score);
-            recorded.turns[gameData.turn].push({event: 'game_finished', data: "Game finished: You scored " + gameData.score});
-            fs.writeFileSync(gameData.jsonName, JSON.stringify(recorded));
+            endGame("Game finished: You scored " + gameData.score);
         } else {
             gameData.turn ++;
             recorded.turns.push([]);
@@ -422,9 +437,7 @@ var launch_game = function(socket, useCache, players, hardMode, easyMode, hashCo
                     recorded.turns[gameData.turn].push({event: 'info', data: 'add'});
                 }
                 if (gameData.score == 30) {
-                    socket.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
-                    socket.broadcast.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
-                    recorded.turns[gameData.turn].push({event: 'game_end', data: "Game finished: Congratulations, you scored 30 !!"});
+                    endGame("Game finished: Congratulations, you scored 30 !!");
                 }
             // Incorrect case
             } else {
@@ -439,10 +452,8 @@ var launch_game = function(socket, useCache, players, hardMode, easyMode, hashCo
                 socket.broadcast.emit('warning', {card: card, pseudo: socket.pseudo});
                 recorded.turns[gameData.turn].push({event: 'warning', data: {card: card, pseudo: socket.pseudo}});
                 if (gameData.warnings == 3) {
-                    socket.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
-                    socket.broadcast.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
-                    recorded.turns[gameData.turn].push({event: 'game_end', data: "GAME FINISHED, SCORE: 0"});
-                }
+                    endGame("Game finished: You accumulated 3 warnings, you scored 0");
+                };
             }
             // Send drawn card
             socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
@@ -538,7 +549,6 @@ var launch_game = function(socket, useCache, players, hardMode, easyMode, hashCo
     });
 
     socket.on('message', function(message) {
-        str = ent.encode(message);
         socket.emit('message', {pseudo: socket.pseudo, message: message});
         socket.broadcast.emit('message', {pseudo: socket.pseudo, message: message});
         gameData.messages = [{pseudo: socket.pseudo, message: message}].concat(gameData.messages);
@@ -546,6 +556,34 @@ var launch_game = function(socket, useCache, players, hardMode, easyMode, hashCo
 
     socket.on('message_history_request', function() {
         socket.emit('message_history', gameData.messages);
+    });
+
+    socket.on('abandonRequest', function() {
+        if (!voteInProgress) {
+            voteInProgress = true;
+            approvedAbandon = 1;
+            socket.broadcast.emit('abandon', socket.pseudo);
+
+            // Check if somebody declined after 60 seconds, if not -> end of the game
+            setTimeout(function() {
+                voteInProgress = false
+                if (declinedAbandon == 0) {
+                    endGame("Game Finished: You abandonned and scored 0.");
+                };
+            }, 30000);
+
+        };
+    });
+
+    socket.on('abandonAgree', function() {
+        approvedAbandon ++;
+        if (approvedAbandon == gameData.players.length) {
+            endGame("Game Finished: You abandonned and scored 0.");
+        };
+    });
+
+    socket.on('abandonDecline', function() {
+        declinedAbandon ++;
     });
 
 };

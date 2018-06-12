@@ -216,9 +216,19 @@
     </div>
 
     <div class="row center">
-        <span style="font-size: 12px; color: #6a6a69; align: center;" ng-if="!gameData.easyMode">
+
+        <div style="font-size: 12px; color: #6a6a69; align: center;" ng-if="!gameData.easyMode">
             <span style="font-weight: bold;">Deck Hash: </span>{{gameData.deckHash}}
-        </span>
+        </div>
+
+        <br>
+
+        <div>
+            <button class="btn btn-danger" ng-click="abandon()">Abandon</button>
+        </div>
+
+        <br>
+
     </div>
 
 </div>
