@@ -23,7 +23,7 @@ function userService($q) {
         },
         connectionAttempt: function(loginData) {
             var deferred = $q.defer();
-            var socket = io.connect('http://' + loginData.server);
+            var socket = io.connect(location.host);
             var logginError = 'OK';
 
             socket.emit('nouveau_client', loginData.username);
