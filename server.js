@@ -139,22 +139,6 @@ var eval_info = function (info, hand) {
     return sentence;
 }
 
-var reorder_correct = function(str) {
-    aux = ['1','2','3','4'];
-    if (str.length == 5) {
-        aux.push('5');
-    }
-    x = [];
-    to_return = true;
-    for (var i = 0; i < str.length; i++) {
-        if (x.includes(str[i]) || !aux.includes(str[i])) {
-            to_return = false
-        }
-        x.push(str[i])
-    }
-    return to_return;
-}
-
 var angles_array = function(hand) {
     var to_return = [];
     hand.forEach(function(elt) {
@@ -508,24 +492,6 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                             socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
                             socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
                             recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: JSON.parse(JSON.stringify(gameData.hands[socket.pseudo]))}});
-                        });
-
-                        socket.on('reorderRequest', function(str) {
-                            str = ent.encode(str);
-                            if (str.length == gameData.cardsPerPlayer && reorder_correct(str)) {
-                                var new_hand = [];
-                                for (var i = 0; i < str.length; i++) {
-                                    new_hand.push(gameData.hands[socket.pseudo][Number(str[i])-1]);
-                                }
-                                gameData.hands[socket.pseudo] = new_hand;
-                                console.log(socket.pseudo,"reorders his hand. New hand:",new_hand);
-                                socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
-                                socket.emit('notify', 'Reordered, changes applied.');
-                                socket.broadcast.emit('redraw', {pseudo: socket.pseudo, hand: gameData.hands[socket.pseudo]});
-                                recorded.turns[gameData.turn].push({event: 'redraw', data: {pseudo: socket.pseudo, hand: JSON.parse(JSON.stringify(gameData.hands[socket.pseudo]))}});
-                            } else {
-                                socket.emit('notify', 'Invalid order given, no change applied.');
-                            }
                         });
 
                         socket.on('message', function(message) {

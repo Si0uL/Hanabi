@@ -70,7 +70,6 @@
                 <div class="panel-body">
                     <span ng-if="username === gameData.nextToPlay" style="font-weight:900; color:#ff0000">You &nbsp;</span>
                     <span ng-if="username != gameData.nextToPlay">You &nbsp;</span>
-                    <a href="javascript:void(0);" ng-click="reorder()"><i class="fa fa-refresh"></i></a>
                     <div class="flexrow">
                         <div class="card-container dropdown" ng-repeat="card in gameData.your_cards_angles">
                             <img class="card2" data-toggle="dropdown" ng-src="img/blank.png" ng-if="card.noCard">

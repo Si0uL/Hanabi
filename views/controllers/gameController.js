@@ -109,11 +109,6 @@ function gameController( $scope, $state, userService ) {
         $scope.socket.emit('rotateRequest', {id: index, angle: -90});
     };
 
-    $scope.reorder = function() {
-        var reo = prompt('Choose a new order (ex. 14325):');
-        if (reo != null) $scope.socket.emit('reorderRequest', reo);
-    };
-
     $scope.evalNextInfo = function(information, player) {
 
         // direct copy from the server
