@@ -4,9 +4,9 @@ Basic implementation of the Hanabi game (check rules [`here`](http://www.cocktai
 
 ## Installation
 
-Clone the git branch `dev-replayer` or download and unpack it:
+Clone the git repository or download and unpack it:
 ```
-git clone -b dev-replayer https://github.com/Si0uL/Hanabi.git
+git clone https://github.com/Si0uL/Hanabi.git
 ```
 
 Install dependencies using npm:
@@ -27,7 +27,7 @@ bower install
 
 Create an empty `games/` repository that will contain the games replays.
 
-Create a `/data/password.json` file constaining the passwords associated to players (the Object's keys).
+Create a `/data/passwords.json` file constaining the passwords associated to players (the Object's keys).
 
 ## Use
 
@@ -44,4 +44,4 @@ npm start [game/game-hard] port h HASHNUMBER player1 player2 [player3, player4, 
 
 Every turn, your game history will be saved in a file located in `/games/`
 
-Use `node recorder.js ip port filepath` to launch replayer on a file (any registred player can log in).
+Use `node replayer.js ip port filepath` to launch replayer on a file (any registred player can log in).
