@@ -90,6 +90,9 @@ var unHash = function (str, nb) {
 };
 
 var is_info_correct = function (info, hand) {
+    if ((hardMode || easyMode) && info == 'multicolor') {
+        return false;
+    }
     var to_return = false;
     var is_color = true;
     if (info.length == 1) {
