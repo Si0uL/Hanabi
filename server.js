@@ -121,12 +121,14 @@ var eval_info = function (info, hand) {
         }
     });
     // sentence construction
-    var sentence = "You have " + pos.length;
-    if (number) {
-        sentence += " number " + info;
-    } else {
-        sentence += " " + info;
+    var sentence = "You have ";
+    if (pos.length == 1) {
+        sentence += "a ";
     }
+    if (number) {
+        sentence += "number ";
+    }
+    sentence += info;
     if (pos.length > 1) {
         sentence += " cards in position ";
         for (var i = 0; i < pos.length-1; i++) {
