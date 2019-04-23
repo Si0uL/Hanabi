@@ -346,21 +346,29 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                             socket.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: game_mode, lastPlay: gameData.lastPlay});
                             socket.broadcast.emit('next_turn', {playerUp: gameData.nextToPlay, game_mode: game_mode, lastPlay: gameData.lastPlay});
                             recorded.turns[gameData.turn].push({event: 'next_turn', data: {playerUp: gameData.nextToPlay, lastPlay: gameData.lastPlay}});
-                            if (gameData.remainingTurns > 0) {
-                                gameData.remainingTurns --;
-                                gameData.turn ++;
-                                console.log("\nTURN " + gameData.turn + ": " + new Date());
-                                console.log(gameData.nextToPlay + " is playing:");
-                                recorded.turns.push([]);
-                                fs.writeFileSync(jsonName, JSON.stringify(recorded));
-                            } else if (gameData.remainingTurns == 0) {
+                            // End of game cases first
+                            if (gameData.remainingTurns == 0) {
                                 isFinished = true;
                                 socket.emit('game_end', "Game finished: You scored " + gameData.score);
                                 socket.broadcast.emit('game_end', "Game finished: You scored " + gameData.score);
                                 console.log("GAME FINISHED, SCORE: " + gameData.score);
                                 recorded.turns[gameData.turn].push({event: 'game_finished', data: "Game finished: You scored " + gameData.score});
                                 fs.writeFileSync(jsonName, JSON.stringify(recorded));
+                            } else if (gameData.score == 30) {
+                                isFinished = true;
+                                socket.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
+                                socket.broadcast.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
+                                recorded.turns[gameData.turn].push({event: 'game_end', data: "Game finished: Congratulations, you scored 30 !!"});
+                                console.log("GAME FINISHED, SCORE: 30");
+                            } else if (gameData.warnings == 3) {
+                                isFinished = true;
+                                socket.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
+                                socket.broadcast.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
+                                console.log("GAME FINISHED, SCORE: 0");
+                                recorded.turns[gameData.turn].push({event: 'game_end', data: "GAME FINISHED, SCORE: 0"});
+                            // Regular case
                             } else {
+                                if (gameData.remainingTurns > 0) gameData.remainingTurns --;
                                 gameData.turn ++;
                                 console.log("\nTURN " + gameData.turn + ": " + new Date());
                                 console.log(gameData.nextToPlay + " is playing:");
@@ -397,13 +405,6 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                                         socket.broadcast.emit('info', 'add');
                                         recorded.turns[gameData.turn].push({event: 'info', data: 'add'});
                                     }
-                                    if (gameData.score == 30) {
-                                        isFinished = true;
-                                        socket.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
-                                        socket.broadcast.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
-                                        recorded.turns[gameData.turn].push({event: 'game_end', data: "Game finished: Congratulations, you scored 30 !!"});
-                                        console.log("GAME FINISHED, SCORE: 30");
-                                    }
                                 // Incorrect case
                                 } else {
                                     console.log("Incorrect,", gameData.warnings+1, "warnings");
@@ -418,13 +419,6 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                                     socket.emit('warning', {card: card, pseudo: socket.pseudo});
                                     socket.broadcast.emit('warning', {card: card, pseudo: socket.pseudo});
                                     recorded.turns[gameData.turn].push({event: 'warning', data: {card: card, pseudo: socket.pseudo}});
-                                    if (gameData.warnings == 3) {
-                                        isFinished = true;
-                                        socket.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
-                                        socket.broadcast.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
-                                        console.log("GAME FINISHED, SCORE: 0");
-                                        recorded.turns[gameData.turn].push({event: 'game_end', data: "GAME FINISHED, SCORE: 0"});
-                                    }
                                 }
                                 // Send drawn card
                                 socket.emit('redraw_mine', angles_array(gameData.hands[socket.pseudo]));
