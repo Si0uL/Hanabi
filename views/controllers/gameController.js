@@ -64,7 +64,6 @@ function gameController( $scope, $state, userService ) {
     $scope.socket.on('warning', function(data) {
         $scope.gameData.warnings ++;
         if (!$scope.$$phase) $scope.$digest();
-        alert('Warning: \n\n' + data.pseudo + ' attempted to play the ' + data.card.color + ' ' + data.card.number);
     });
 
     $scope.socket.on('next_turn', function(data) {

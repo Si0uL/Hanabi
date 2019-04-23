@@ -414,7 +414,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                                 // Incorrect case
                                 } else {
                                     console.log("Incorrect,", gameData.warnings+1, "warnings");
-                                    gameData.lastPlay = socket.pseudo + " atemps to play " + card.color + " " + card.number;
+                                    gameData.lastPlay = "WARNING: " + socket.pseudo + " atemps to play " + card.color + " " + card.number;
                                     console.log(gameData.lastPlay);
                                     gameData.discarded.push(card);
                                     updateExpected();
