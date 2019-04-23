@@ -14,6 +14,7 @@ if (!["test", "game", "game-hard", "game-easy"].includes(process.argv[2])) throw
 var game_mode = (process.argv[2].includes("game"));
 var hardMode = (process.argv[2] == "game-hard");
 var easyMode = (process.argv[2] == "game-easy");
+var isFinished = false;
 
 var port = Number(process.argv[3]);
 
@@ -353,6 +354,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                                 recorded.turns.push([]);
                                 fs.writeFileSync(jsonName, JSON.stringify(recorded));
                             } else if (gameData.remainingTurns == 0) {
+                                isFinished = true;
                                 socket.emit('game_end', "Game finished: You scored " + gameData.score);
                                 socket.broadcast.emit('game_end', "Game finished: You scored " + gameData.score);
                                 console.log("GAME FINISHED, SCORE: " + gameData.score);
@@ -370,6 +372,8 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                         socket.on('playRequest', function(card_index) {
                             if (socket.pseudo != gameData.nextToPlay) {
                                 socket.emit('notify', 'It\'s not your turn');
+                            } else if (isFinished) {
+                                socket.emit('notify', 'The game is over !');
                             } else {
                                 // update gameData
                                 var card = gameData.hands[socket.pseudo].splice(card_index,1)[0];
@@ -394,6 +398,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                                         recorded.turns[gameData.turn].push({event: 'info', data: 'add'});
                                     }
                                     if (gameData.score == 30) {
+                                        isFinished = true;
                                         socket.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
                                         socket.broadcast.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
                                         recorded.turns[gameData.turn].push({event: 'game_end', data: "Game finished: Congratulations, you scored 30 !!"});
@@ -414,6 +419,7 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                                     socket.broadcast.emit('warning', {card: card, pseudo: socket.pseudo});
                                     recorded.turns[gameData.turn].push({event: 'warning', data: {card: card, pseudo: socket.pseudo}});
                                     if (gameData.warnings == 3) {
+                                        isFinished = true;
                                         socket.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
                                         socket.broadcast.emit('game_end', "Game finished: You accumulated 3 warnings, you scored 0");
                                         console.log("GAME FINISHED, SCORE: 0");
@@ -437,6 +443,8 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                         socket.on('discardRequest', function(card_index) {
                             if (socket.pseudo != gameData.nextToPlay) {
                                 socket.emit('notify', 'It\'s not your turn');
+                            } else if (isFinished) {
+                                socket.emit('notify', 'The game is over !');
                             } else {
                                 var card = gameData.hands[socket.pseudo].splice(card_index,1)[0];
                                 var drawnCard = gameData.deck.pop();
@@ -471,6 +479,8 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                         socket.on('infoRequest', function(data) {
                             if (socket.pseudo != gameData.nextToPlay) {
                                 socket.emit('notify', 'It\'s not your turn');
+                            } else if (isFinished) {
+                                socket.emit('notify', 'The game is over !');
                             } else {
                                 if (gameData.informations != 0) {
                                     if (is_info_correct(data.info, gameData.hands[data.player])) {
