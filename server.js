@@ -354,6 +354,12 @@ fs.readFile('./data/passwords.json', 'utf8', function(err, data) {
                                 console.log("GAME FINISHED, SCORE: " + gameData.score);
                                 recorded.turns[gameData.turn].push({event: 'game_finished', data: "Game finished: You scored " + gameData.score});
                                 fs.writeFileSync(jsonName, JSON.stringify(recorded));
+                            } else if (gameData.score == gameData.maxScore) {
+                                isFinished = true;
+                                socket.emit('game_end', "Game finished: There is nothing more to play, you scored " + gameData.score);
+                                socket.broadcast.emit('game_end', "Game finished: There is nothing more to play, you scored " + gameData.score);
+                                recorded.turns[gameData.turn].push({event: 'game_end', data: "Game finished: There is nothing more to play, you scored " + gameData.score});
+                                console.log("GAME FINISHED, SCORE: " + gameData.score);
                             } else if (gameData.score == 30) {
                                 isFinished = true;
                                 socket.emit('game_end', "Game finished: Congratulations, you scored 30 !!");
